@@ -4,7 +4,10 @@ import { Home } from '@/pages/Home'
 import { Events } from '@/pages/Events'
 import { EventDetailsPage } from '@/pages/EventDetails'
 import { CreateEvent } from '@/pages/CreateEvent'
+import { LoginPage } from '@/pages/Login'
+import { AdminPage } from '@/pages/Admin'
 import { NotFound } from '@/pages/NotFound'
+import { RequireAuth } from './guards'
 
 export const router = createBrowserRouter([
   {
@@ -26,7 +29,23 @@ export const router = createBrowserRouter([
       },
       {
         path: 'create',
-        element: <CreateEvent />,
+        element: (
+          <RequireAuth>
+            <CreateEvent />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'login',
+        element: <LoginPage />,
+      },
+      {
+        path: 'admin',
+        element: (
+          <RequireAuth>
+            <AdminPage />
+          </RequireAuth>
+        ),
       },
       {
         path: '*',

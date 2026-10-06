@@ -54,9 +54,11 @@ export function EventDetails({ event, onRegister, isRegistering = false }: Event
 
       {/* Title & meta */}
       <div>
-        <span className="inline-block px-2.5 py-1 rounded-lg bg-primary-50 text-primary-700 text-xs font-medium mb-2 capitalize">
-          {event.category}
-        </span>
+        {event.category && (
+          <span className="inline-block px-2.5 py-1 rounded-lg bg-primary-50 text-primary-700 text-xs font-medium mb-2 capitalize">
+            {event.category}
+          </span>
+        )}
         <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
           {event.title}
         </h1>
@@ -109,20 +111,22 @@ export function EventDetails({ event, onRegister, isRegistering = false }: Event
           </div>
         </Card>
 
-        <Card className="p-4 sm:p-5 bg-[#141414] border border-neutral-800/50 ring-0">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
-              <Users size={20} className="text-success" />
+        {event.attendeeCount !== undefined && (
+          <Card className="p-4 sm:p-5 bg-[#141414] border border-neutral-800/50 ring-0">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+                <Users size={20} className="text-success" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Attendees</p>
+                <p className="text-sm text-neutral-400">
+                  {event.attendeeCount} registered
+                  {event.capacity && ` / ${event.capacity} spots`}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-white">Attendees</p>
-              <p className="text-sm text-neutral-400">
-                {event.attendeeCount} registered
-                {event.capacity && ` / ${event.capacity} spots`}
-              </p>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         <Card className="p-4 sm:p-5 bg-[#141414] border border-neutral-800/50 ring-0">
           <div className="flex items-start gap-3">
@@ -140,28 +144,34 @@ export function EventDetails({ event, onRegister, isRegistering = false }: Event
       </div>
 
       {/* Organizer */}
-      <Card className="p-4 sm:p-5 bg-[#141414] border border-neutral-800/50 ring-0">
-        <h3 className="text-sm font-medium text-neutral-400 mb-3">Organized by</h3>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-primary-500/10 flex items-center justify-center">
-            <span className="text-lg font-semibold text-primary-400">
-              {getInitials(event.organizer.name)}
-            </span>
+      {event.organizer && (
+        <Card className="p-4 sm:p-5 bg-[#141414] border border-neutral-800/50 ring-0">
+          <h3 className="text-sm font-medium text-neutral-400 mb-3">Organized by</h3>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-primary-500/10 flex items-center justify-center">
+              <span className="text-lg font-semibold text-primary-400">
+                {getInitials(event.organizer.name)}
+              </span>
+            </div>
+            <div>
+              <p className="font-medium text-white">{event.organizer.name}</p>
+              {event.organizer.email && (
+                <p className="text-sm text-neutral-400">{event.organizer.email}</p>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="font-medium text-white">{event.organizer.name}</p>
-            <p className="text-sm text-neutral-400">{event.organizer.email}</p>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Description */}
-      <div>
-        <h2 className="text-lg font-semibold text-white mb-3">About this event</h2>
-        <div className="prose prose-surface max-w-none text-neutral-400 leading-relaxed whitespace-pre-line">
-          {event.description}
+      {event.description && (
+        <div>
+          <h2 className="text-lg font-semibold text-white mb-3">About this event</h2>
+          <div className="prose prose-surface max-w-none text-neutral-400 leading-relaxed whitespace-pre-line">
+            {event.description}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Tags */}
       {event.tags && event.tags.length > 0 && (
@@ -185,9 +195,9 @@ export function EventDetails({ event, onRegister, isRegistering = false }: Event
               {event.isFree ? 'Free' : formatCurrency(event.ticketPrice || 0, event.currency)}
             </p>
             <p className="text-xs text-neutral-400">
-              {event.capacity
-                ? `${event.capacity - event.attendeeCount} spots left`
-                : 'Unlimited spots'}
+              {event.capacity && event.attendeeCount !== undefined
+                ? `${Math.max(event.capacity - event.attendeeCount, 0)} spots left`
+                : 'First come, first served'}
             </p>
           </div>
           <Button
@@ -204,7 +214,7 @@ export function EventDetails({ event, onRegister, isRegistering = false }: Event
             ) : (
               <UserPlus size={18} />
             )}
-            Register Now
+            {event.ticketUrl || event.sourceUrl ? 'Get Tickets' : 'Register Now'}
           </Button>
         </div>
       </div>

@@ -1,34 +1,37 @@
 import { useState, useRef, useEffect } from 'react'
-import { Search, SlidersHorizontal, X } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { AlertTriangle, Search, SlidersHorizontal, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { EventList } from '@/components/event/EventList'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/common/Input'
 import { useEvents } from '@/hooks/useEvents'
 import { useAppStore } from '@/store'
+import { EVENT_CATEGORIES, isEventCategory } from '@/utils/validators'
 import type { EventCategory } from '@/types'
 
 const categories: { value: EventCategory | ''; label: string }[] = [
   { value: '', label: 'All' },
-  { value: 'conference', label: 'Conference' },
-  { value: 'workshop', label: 'Workshop' },
-  { value: 'seminar', label: 'Seminar' },
-  { value: 'meetup', label: 'Meetup' },
-  { value: 'concert', label: 'Concert' },
-  { value: 'sports', label: 'Sports' },
-  { value: 'social', label: 'Social' },
-  { value: 'charity', label: 'Charity' },
-  { value: 'other', label: 'Other' },
+  ...EVENT_CATEGORIES.map((category) => ({ value: category, label: category })),
 ]
 
 const DEBOUNCE_DELAY = 400
 
 export function Events() {
   const { eventFilters, setEventFilters } = useAppStore()
+  const [searchParams] = useSearchParams()
   const [searchInput, setSearchInput] = useState(eventFilters.search || '')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { data, isLoading } = useEvents(eventFilters)
+  const { data, isLoading, isError, error, refetch } = useEvents(eventFilters)
+
+  // Deep link support: /events?category=Music
+  useEffect(() => {
+    const category = searchParams.get('category')
+    if (category && isEventCategory(category)) {
+      setEventFilters({ category, page: 1 })
+    }
+  }, [searchParams, setEventFilters])
 
   // Clean up debounce timer on unmount
   useEffect(() => {
@@ -106,6 +109,22 @@ export function Events() {
           </button>
         ))}
       </div>
+
+      {/* Error state */}
+      {isError && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-xl border border-error/30 bg-error/10">
+          <AlertTriangle size={18} className="text-error shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-white">We couldn&apos;t load events</p>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              {error?.message || 'Something went wrong. Please try again.'}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </div>
+      )}
 
       {/* Results */}
       <EventList

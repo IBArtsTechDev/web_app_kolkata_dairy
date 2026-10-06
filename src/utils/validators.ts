@@ -1,69 +1,96 @@
 import { z } from 'zod'
+import type { EventCategory } from '@/types'
 
-/** Create event form validation schema */
+/** Categories accepted by the events API */
+export const EVENT_CATEGORIES = [
+  'Music',
+  'Theatre',
+  'Exhibition',
+  'Nightlife',
+  'Sports',
+  'Food',
+  'Workshop',
+  'Festival',
+  'Other',
+] as const
+
+/** Type guard for API category values */
+export function isEventCategory(value: string): value is EventCategory {
+  return (EVENT_CATEGORIES as readonly string[]).includes(value)
+}
+
+const optionalUrl = z
+  .string()
+  .trim()
+  .url('Must be a valid URL')
+  .optional()
+  .or(z.literal(''))
+
+/** Create event form validation schema (mirrors the API event contract) */
 export const createEventSchema = z
   .object({
     title: z
       .string()
-      .min(3, 'Title must be at least 3 characters')
-      .max(120, 'Title must be at most 120 characters'),
+      .trim()
+      .min(2, 'Title must be at least 2 characters')
+      .max(200, 'Title must be at most 200 characters'),
     description: z
       .string()
-      .min(20, 'Description must be at least 20 characters')
-      .max(5000, 'Description must be at most 5000 characters'),
-    shortDescription: z
+      .max(5000, 'Description must be at most 5000 characters')
+      .optional()
+      .or(z.literal('')),
+    category: z.enum(EVENT_CATEGORIES),
+    startsAt: z.string().min(1, 'Start date is required'),
+    endsAt: z.string().optional().or(z.literal('')),
+    venueName: z
       .string()
-      .max(280, 'Short description must be at most 280 characters')
-      .optional(),
-    category: z.enum([
-      'conference',
-      'workshop',
-      'seminar',
-      'webinar',
-      'meetup',
-      'social',
-      'concert',
-      'sports',
-      'charity',
-      'other',
-    ]),
-    startDate: z.string().min(1, 'Start date is required'),
-    endDate: z.string().min(1, 'End date is required'),
-    timezone: z.string().min(1, 'Timezone is required'),
-    isOnline: z.boolean(),
-    meetingUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+      .trim()
+      .min(2, 'Venue name is required')
+      .max(200, 'Venue name must be at most 200 characters'),
+    venueAddress: z.string().optional().or(z.literal('')),
+    city: z
+      .string()
+      .trim()
+      .min(2, 'City is required')
+      .max(100, 'City must be at most 100 characters'),
+    area: z.string().optional().or(z.literal('')),
     isFree: z.boolean(),
-    ticketPrice: z.number().min(0, 'Price must be positive').optional(),
-    capacity: z.number().min(1, 'Capacity must be at least 1').optional(),
-    tags: z.array(z.string()).optional(),
-    location: z.object({
-      type: z.enum(['physical', 'virtual', 'hybrid']),
-      venue: z.string().optional(),
-      address: z.string().optional(),
-      city: z.string().optional(),
-      state: z.string().optional(),
-      country: z.string().optional(),
-      postalCode: z.string().optional(),
-    }),
+    priceMin: z.number().min(0, 'Price must be positive').optional(),
+    currency: z
+      .string()
+      .trim()
+      .length(3, 'Currency must be a 3-letter code'),
+    status: z.enum(['draft', 'active', 'hidden', 'past', 'cancelled']),
+    isActive: z.boolean(),
+    sourceUrl: optionalUrl,
+    ticketUrl: optionalUrl,
   })
   .refine(
     (data) => {
-      if (data.startDate && data.endDate) {
-        return new Date(data.endDate) > new Date(data.startDate)
+      if (data.startsAt && data.endsAt) {
+        return new Date(data.endsAt) > new Date(data.startsAt)
       }
       return true
     },
-    { message: 'End date must be after start date', path: ['endDate'] },
+    { message: 'End date must be after start date', path: ['endsAt'] },
   )
   .refine(
     (data) => {
-      if (!data.isFree && data.ticketPrice === undefined) return false
-      return true
+      if (data.isFree) return true
+      return data.priceMin !== undefined && !Number.isNaN(data.priceMin)
     },
-    { message: 'Ticket price is required for paid events', path: ['ticketPrice'] },
+    { message: 'Ticket price is required for paid events', path: ['priceMin'] },
   )
 
 export type CreateEventFormData = z.infer<typeof createEventSchema>
+
+/** Admin login validation */
+export const loginSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+})
+
+export type LoginFormData = z.infer<typeof loginSchema>
 
 /** Search validation */
 export const searchSchema = z.object({

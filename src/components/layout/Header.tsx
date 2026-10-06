@@ -1,13 +1,20 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, ChevronDown, Bell } from 'lucide-react'
+import { Search, ChevronDown, Bell, ShieldCheck } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { navigationItems } from '@/components/hero/data'
 import { SearchOverlay } from './SearchOverlay'
+import { useAppStore } from '@/store'
+import { getInitials } from '@/utils'
 import { cn } from '@/lib/utils'
 
 export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const user = useAppStore((state) => state.user)
+  const isAuthenticated = useAppStore((state) => state.isAuthenticated)
+
+  const displayName = user?.name || 'Guest'
+  const initials = getInitials(displayName)
 
   return (
     <>
@@ -18,14 +25,18 @@ export function Header() {
           {/* User Profile */}
           <div className="flex items-center gap-3">
             <Avatar size="sm" className="w-10 h-10 border border-neutral-700">
-              <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="John" />
+              <AvatarImage src={user?.profilePicture || undefined} alt={displayName} />
               <AvatarFallback className="bg-neutral-800 text-white font-bold">
-                JS
+                {initials}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col justify-center">
-              <p className="text-[10px] text-neutral-400 leading-none mb-1">Hello John</p>
-              <p className="text-sm font-semibold text-white leading-none">Welcome Back!</p>
+              <p className="text-[10px] text-neutral-400 leading-none mb-1">
+                {isAuthenticated ? `Hello ${displayName}` : 'Hello there'}
+              </p>
+              <p className="text-sm font-semibold text-white leading-none">
+                {isAuthenticated ? 'Welcome Back!' : 'Welcome to Kolkata Diary'}
+              </p>
             </div>
           </div>
           
@@ -103,18 +114,32 @@ export function Header() {
                 <ChevronDown className="w-3 h-3 text-neutral-500" />
               </button>
 
+              {/* Admin / Sign in */}
+              <Link
+                to={isAuthenticated ? '/admin' : '/login'}
+                className="flex items-center gap-1.5 bg-[#1a1a1a] px-3 py-1.5 rounded-full border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700 transition-colors text-xs font-medium"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                {isAuthenticated ? 'Admin' : 'Sign in'}
+              </Link>
+
               {/* User Avatar */}
-              <div className="flex items-center gap-2 pl-2">
+              <Link
+                to={isAuthenticated ? '/admin' : '/login'}
+                className="flex items-center gap-2 pl-2 group"
+                aria-label={isAuthenticated ? 'Open admin console' : 'Sign in'}
+              >
                 <div className="text-right hidden md:block">
                   <p className="text-[9px] text-neutral-500 uppercase tracking-wider leading-none mb-0.5">Welcome</p>
-                  <p className="text-xs font-medium text-white leading-none">John Sen</p>
+                  <p className="text-xs font-medium text-white leading-none">{displayName}</p>
                 </div>
-                <Avatar size="sm" className="w-8 h-8 border border-neutral-700">
+                <Avatar size="sm" className="w-8 h-8 border border-neutral-700 group-hover:border-neutral-600 transition-colors">
+                  <AvatarImage src={user?.profilePicture || undefined} alt={displayName} />
                   <AvatarFallback className="bg-neutral-800 text-white text-[10px] font-bold">
-                    JS
+                    {initials}
                   </AvatarFallback>
                 </Avatar>
-              </div>
+              </Link>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { EventForm } from '@/components/event/EventForm'
 import { useCreateEvent } from '@/hooks/useEvents'
 import { useAppContext } from '@/context'
+import { toEventPayload } from '@/api/mappers'
 import type { CreateEventFormData } from '@/utils/validators'
 
 export function CreateEvent() {
@@ -10,16 +11,19 @@ export function CreateEvent() {
   const { addToast } = useAppContext()
   const createEventMutation = useCreateEvent()
 
-  const handleSubmit = (data: CreateEventFormData) => {
-    createEventMutation.mutate(data, {
-      onSuccess: (event) => {
-        addToast({ message: 'Event created successfully!', type: 'success' })
-        navigate(`/events/${event.id}`)
+  const handleSubmit = (data: CreateEventFormData, image?: File) => {
+    createEventMutation.mutate(
+      { payload: toEventPayload(data), image },
+      {
+        onSuccess: (event) => {
+          addToast({ message: 'Event created successfully!', type: 'success' })
+          navigate(`/events/${event.id}`)
+        },
+        onError: (error) => {
+          addToast({ message: error.message || 'Failed to create event.', type: 'error' })
+        },
       },
-      onError: () => {
-        addToast({ message: 'Failed to create event. Please try again.', type: 'error' })
-      },
-    })
+    )
   }
 
   return (

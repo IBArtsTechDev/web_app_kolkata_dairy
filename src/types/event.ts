@@ -6,24 +6,23 @@
 export interface BaseEntity {
   id: string
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
 }
 
-/** Event status enumeration */
-export type EventStatus = 'draft' | 'published' | 'cancelled' | 'completed'
+/** Event status enumeration (mirrors API enum) */
+export type EventStatus = 'draft' | 'active' | 'hidden' | 'past' | 'cancelled'
 
-/** Event category enumeration */
+/** Event category enumeration (mirrors API enum) */
 export type EventCategory =
-  | 'conference'
-  | 'workshop'
-  | 'seminar'
-  | 'webinar'
-  | 'meetup'
-  | 'social'
-  | 'concert'
-  | 'sports'
-  | 'charity'
-  | 'other'
+  | 'Music'
+  | 'Theatre'
+  | 'Exhibition'
+  | 'Nightlife'
+  | 'Sports'
+  | 'Food'
+  | 'Workshop'
+  | 'Festival'
+  | 'Other'
 
 /** Recurrence pattern for recurring events */
 export type RecurrencePattern = 'daily' | 'weekly' | 'monthly' | 'yearly'
@@ -31,25 +30,28 @@ export type RecurrencePattern = 'daily' | 'weekly' | 'monthly' | 'yearly'
 /** Core Event entity */
 export interface Event extends BaseEntity {
   title: string
-  description: string
+  description: string | null
   shortDescription?: string
-  category: EventCategory
+  category: EventCategory | null
   status: EventStatus
+  isActive?: boolean
   startDate: string
   endDate: string
-  timezone: string
+  timezone?: string
   location: EventLocation
-  organizer: Organizer
-  coverImage?: string
+  organizer?: Organizer
+  coverImage?: string | null
   gallery?: string[]
   tags?: string[]
   capacity?: number
-  attendeeCount: number
+  attendeeCount?: number
   isOnline: boolean
   meetingUrl?: string
   isFree: boolean
   ticketPrice?: number
   currency?: string
+  sourceUrl?: string | null
+  ticketUrl?: string | null
   recurrence?: {
     pattern: RecurrencePattern
     interval: number
@@ -66,6 +68,7 @@ export interface EventLocation {
   state?: string
   country?: string
   postalCode?: string
+  area?: string
   coordinates?: {
     latitude: number
     longitude: number
@@ -76,7 +79,7 @@ export interface EventLocation {
 export interface Organizer {
   id: string
   name: string
-  email: string
+  email?: string
   avatar?: string
   bio?: string
 }
@@ -106,32 +109,44 @@ export interface TicketType {
   saleEnd: string
 }
 
+/** Pagination metadata returned by the API */
+export interface PaginationMeta {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPrevPage: boolean
+}
+
 /** Paginated API response wrapper */
 export interface PaginatedResponse<T> {
   data: T[]
-  meta: {
-    total: number
-    page: number
-    limit: number
-    totalPages: number
-    hasNextPage: boolean
-    hasPrevPage: boolean
-  }
+  meta: PaginationMeta
 }
 
-/** Standard API response */
+/** Standard API response envelope */
 export interface ApiResponse<T> {
-  success: boolean
-  data: T
-  message?: string
-  errors?: Record<string, string[]>
+  status: 'success' | 'error' | 'fail'
+  message: string
+  data?: T
+  error?: unknown
+  meta?: unknown
+  timestamp?: string
+}
+
+/** Field level validation error */
+export interface ApiFieldError {
+  field: string
+  message: string
 }
 
 /** API error response */
 export interface ApiError {
   message: string
   statusCode: number
-  errors?: Record<string, string[]>
+  errorCode?: string
+  errors?: ApiFieldError[]
 }
 
 /** Filter options for querying events */
@@ -144,31 +159,34 @@ export interface EventFilters {
   isOnline?: boolean
   isFree?: boolean
   city?: string
+  area?: string
   tags?: string[]
   page?: number
   limit?: number
-  sortBy?: 'startDate' | 'createdAt' | 'title' | 'attendeeCount'
-  sortOrder?: 'asc' | 'desc'
+  sortBy?: 'startsAt' | 'endsAt' | 'createdAt' | 'priceMin' | 'title'
+  sortOrder?: 'ASC' | 'DESC'
 }
 
 /** Create event payload */
 export interface CreateEventPayload {
   title: string
-  description: string
-  shortDescription?: string
-  category: EventCategory
-  startDate: string
-  endDate: string
-  timezone: string
-  location: EventLocation
-  coverImage?: string
-  tags?: string[]
-  capacity?: number
-  isOnline: boolean
-  meetingUrl?: string
-  isFree: boolean
-  ticketPrice?: number
+  description?: string | null
+  startsAt: string
+  endsAt?: string | null
+  venueName: string
+  venueAddress?: string | null
+  city?: string
+  area?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  category?: EventCategory | null
+  imageUrl?: string | null
+  sourceUrl?: string | null
+  ticketUrl?: string | null
+  priceMin?: number
   currency?: string
+  status?: EventStatus
+  isActive?: boolean
 }
 
 /** Update event payload */

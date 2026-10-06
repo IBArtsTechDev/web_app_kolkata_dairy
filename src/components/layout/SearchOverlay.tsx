@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, Search } from 'lucide-react'
+import { CalendarDays, ChevronLeft, MapPin, Search } from 'lucide-react'
+import { useEvents } from '@/hooks'
+import { formatCurrency, formatDate } from '@/utils'
 
 interface SearchOverlayProps {
   isOpen: boolean
@@ -9,6 +12,27 @@ interface SearchOverlayProps {
 
 export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedTerm, setDebouncedTerm] = useState('')
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedTerm(searchTerm.trim()), 350)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  const query = debouncedTerm.length >= 2 ? debouncedTerm : ''
+  const { data, isLoading } = useEvents({ search: query, limit: 6 }, query.length > 0 && isOpen)
+  const results = data?.data ?? []
+
+  const goToEvent = (eventId: string) => {
+    navigate(`/events/${eventId}`)
+    onClose()
+  }
+
+  const browseAll = () => {
+    navigate('/events')
+    onClose()
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -84,7 +108,104 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto hide-scrollbar sm:p-8">
-              
+
+              {/* Live search results */}
+              {query && (
+                <div className="px-4 sm:px-0">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-[15px] sm:text-base font-semibold text-white">
+                      Results for &ldquo;{query}&rdquo;
+                    </h3>
+                    <span className="text-[11px] text-neutral-500">
+                      {isLoading ? 'Searching…' : `${data?.meta.total ?? 0} found`}
+                    </span>
+                  </div>
+
+                  {isLoading ? (
+                    <div className="flex flex-col gap-3">
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className="h-[88px] rounded-xl bg-[#1c1c1e] animate-pulse"
+                        />
+                      ))}
+                    </div>
+                  ) : results.length === 0 ? (
+                    <div className="rounded-xl border border-white/5 bg-[#141414] p-6 text-center">
+                      <p className="text-sm font-medium text-neutral-200">
+                        No events match &ldquo;{query}&rdquo;
+                      </p>
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Try a different keyword, or browse everything happening in the city.
+                      </p>
+                      <button
+                        onClick={browseAll}
+                        className="mt-4 text-[11px] font-bold uppercase tracking-wider text-[#FF2E4D] hover:underline"
+                      >
+                        Browse all events
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {results.map((event) => (
+                        <button
+                          key={event.id}
+                          onClick={() => goToEvent(event.id)}
+                          className="flex gap-3 sm:gap-4 rounded-xl border border-white/5 bg-[#1c1c1e] p-3 text-left transition-colors hover:bg-[#242426] sm:bg-[#141414] sm:p-4 sm:hover:bg-[#1a1a1c]"
+                        >
+                          <div className="h-[70px] w-[70px] flex-shrink-0 overflow-hidden rounded-lg bg-neutral-900 sm:h-[80px] sm:w-[80px]">
+                            {event.coverImage ? (
+                              <img
+                                src={event.coverImage}
+                                alt=""
+                                loading="lazy"
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-lg">
+                                🎟️
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex min-w-0 flex-col justify-center">
+                            <h4 className="mb-1 truncate text-[13px] font-semibold text-white sm:text-[14px]">
+                              {event.title}
+                            </h4>
+                            <p className="mb-1 flex items-center gap-1.5 text-[10px] text-neutral-400 sm:text-[11px]">
+                              <CalendarDays size={11} className="shrink-0" />
+                              {formatDate(event.startDate, 'EEE, MMM d')}
+                              <span className="hidden text-neutral-600 sm:inline">•</span>
+                              <MapPin size={11} className="hidden shrink-0 sm:inline" />
+                              <span className="truncate">
+                                {event.location.venue || event.location.city}
+                              </span>
+                            </p>
+                            <p className="text-[11px] font-bold text-[#FF2E4D] sm:text-[12px]">
+                              {event.isFree
+                                ? 'Free'
+                                : formatCurrency(event.ticketPrice ?? 0, event.currency)}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+
+                      {data && data.meta.total > results.length && (
+                        <button
+                          onClick={browseAll}
+                          className="mt-1 self-start text-[11px] font-bold uppercase tracking-wider text-[#FF2E4D] hover:underline"
+                        >
+                          View all {data.meta.total} results
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Browse discover content (hidden while a search is active) */}
+              {!query && (
+                <>
+
               {/* Popular Searches */}
               <div className="px-4 sm:px-0 mb-8">
                 <h3 className="text-[15px] sm:text-base font-semibold text-white mb-4">Popular searches</h3>
@@ -203,7 +324,10 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                   ))}
                 </div>
               </div>
-              
+
+                </>
+              )}
+
             </div>
           </div>
         </motion.div>

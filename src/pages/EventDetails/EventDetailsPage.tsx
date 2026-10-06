@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { EventDetails } from '@/components/event/EventDetails'
-import { useEvent, useRegisterForEvent } from '@/hooks/useEvents'
+import { useEvent } from '@/hooks/useEvents'
 import { useAppContext } from '@/context'
 import { Skeleton } from '@/components/common/Skeleton'
 
@@ -10,17 +10,16 @@ export function EventDetailsPage() {
   const { addToast } = useAppContext()
 
   const { data: event, isLoading, error } = useEvent(id || '')
-  const registerMutation = useRegisterForEvent()
 
   const handleRegister = () => {
-    if (!id) return
-    registerMutation.mutate(id, {
-      onSuccess: () => {
-        addToast({ message: 'Successfully registered for the event!', type: 'success' })
-      },
-      onError: () => {
-        addToast({ message: 'Failed to register. Please try again.', type: 'error' })
-      },
+    const ticketUrl = event?.ticketUrl || event?.sourceUrl
+    if (ticketUrl) {
+      window.open(ticketUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+    addToast({
+      message: 'Online registration for this event is not available yet.',
+      type: 'info',
     })
   }
 
@@ -42,7 +41,9 @@ export function EventDetailsPage() {
           <span className="text-2xl">😔</span>
         </div>
         <h2 className="text-xl font-semibold text-white mb-2">Event not found</h2>
-        <p className="text-neutral-400 mb-6">The event you're looking for doesn't exist or has been removed.</p>
+        <p className="text-neutral-400 mb-6">
+          The event you&apos;re looking for doesn&apos;t exist, has ended, or has been removed.
+        </p>
         <button
           onClick={() => navigate('/events')}
           className="text-primary-600 font-medium hover:underline"
@@ -53,11 +54,5 @@ export function EventDetailsPage() {
     )
   }
 
-  return (
-    <EventDetails
-      event={event}
-      onRegister={handleRegister}
-      isRegistering={registerMutation.isPending}
-    />
-  )
+  return <EventDetails event={event} onRegister={handleRegister} />
 }

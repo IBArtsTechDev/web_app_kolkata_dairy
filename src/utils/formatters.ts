@@ -44,8 +44,11 @@ export function isEventPast(endDate: string): boolean {
 export function getEventStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     draft: 'Draft',
-    published: 'Live',
+    active: 'Live',
+    hidden: 'Hidden',
+    past: 'Past',
     cancelled: 'Cancelled',
+    published: 'Live',
     completed: 'Completed',
   }
   return labels[status] || status
@@ -55,8 +58,11 @@ export function getEventStatusLabel(status: string): string {
 export function getEventStatusColor(status: string): string {
   const colors: Record<string, string> = {
     draft: 'bg-surface-200 text-surface-700',
-    published: 'bg-success/15 text-success',
+    active: 'bg-success/15 text-success',
+    hidden: 'bg-surface-200 text-surface-700',
+    past: 'bg-info/15 text-info',
     cancelled: 'bg-error/15 text-error',
+    published: 'bg-success/15 text-success',
     completed: 'bg-info/15 text-info',
   }
   return colors[status] || 'bg-surface-200 text-surface-700'

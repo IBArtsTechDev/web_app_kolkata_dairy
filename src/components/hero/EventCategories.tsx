@@ -1,30 +1,86 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
-  Music2,
-  UtensilsCrossed,
-  Palette,
-  Wine,
   Activity,
-  Landmark,
-  Mic2,
   Film,
+  Landmark,
+  LandPlot,
+  Mic2,
+  Music2,
+  Palette,
+  Sparkles,
+  UtensilsCrossed,
+  Wine,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Skeleton } from '@/components/common/Skeleton'
+import { useCategories } from '@/hooks/useCategories'
+import { isEventCategory } from '@/utils/validators'
+import type { LucideIcon } from 'lucide-react'
 
-const categoriesList = [
-  { id: '1', label: 'Music', href: '/category/music', icon: Music2, colorClass: 'text-white' },
-  { id: '2', label: 'Dining', href: '/category/dining', icon: UtensilsCrossed, colorClass: 'text-yellow-500' },
-  { id: '3', label: 'Art & Visuals', href: '/category/art', icon: Palette, colorClass: 'text-purple-400' },
-  { id: '4', label: 'Nightlife', href: '/category/nightlife', icon: Wine, colorClass: 'text-pink-500' },
-  { id: '5', label: 'Sports', href: '/category/sports', icon: Activity, colorClass: 'text-green-500' },
-  { id: '6', label: 'Heritage', href: '/category/heritage', icon: Landmark, colorClass: 'text-yellow-200' },
-  { id: '7', label: 'Standup', href: '/category/standup', icon: Mic2, colorClass: 'text-blue-400' },
-  { id: '8', label: 'Screenings', href: '/category/screenings', icon: Film, colorClass: 'text-red-400' },
+const iconPatterns: { match: RegExp; icon: LucideIcon }[] = [
+  { match: /music|song|concert|band/i, icon: Music2 },
+  { match: /food|dining|culinary|cafe|restaurant/i, icon: UtensilsCrossed },
+  { match: /art|exhibition|gallery|craft/i, icon: Palette },
+  { match: /night|club|bar|party/i, icon: Wine },
+  { match: /sport|fitness|cricket|football/i, icon: Activity },
+  { match: /heritage|history|museum|tour/i, icon: Landmark },
+  { match: /stand|comedy|talk|workshop|theatre/i, icon: Mic2 },
+  { match: /film|screen|movie|cinema/i, icon: Film },
+  { match: /festival|fair|mela/i, icon: LandPlot },
 ]
 
+const colorClasses = [
+  'text-white',
+  'text-yellow-500',
+  'text-purple-400',
+  'text-pink-500',
+  'text-green-400',
+  'text-blue-400',
+  'text-orange-400',
+  'text-cyan-400',
+]
+
+function iconFor(label: string): LucideIcon {
+  return iconPatterns.find((pattern) => pattern.match.test(label))?.icon ?? Sparkles
+}
+
 export function EventCategories() {
-  const [selectedId, setSelectedId] = useState('1')
+  const [selectedId, setSelectedId] = useState('')
+  const navigate = useNavigate()
+  const { data: categories, isLoading } = useCategories()
+
+  if (isLoading) {
+    return (
+      <section className="w-full bg-[#0a0a0a] py-5 sm:py-6" aria-label="Browse by categories">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Skeleton width={220} height={20} className="mb-4" />
+          <div className="flex gap-3 sm:gap-4 overflow-x-auto hide-scrollbar pb-2">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Skeleton
+                key={index}
+                variant="rectangular"
+                className="min-w-[70px] h-[72px] sm:min-w-[140px] sm:h-[104px] rounded-2xl"
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (!categories?.length) return null
+
+  const items = categories.map((category, index) => ({
+    id: category.categoryId,
+    label: category.name,
+    href: isEventCategory(category.name)
+      ? `/events?category=${encodeURIComponent(category.name)}`
+      : '/events',
+    icon: iconFor(category.name),
+    image: category.icon,
+    colorClass: colorClasses[index % colorClasses.length],
+  }))
 
   return (
     <section className="w-full bg-[#0a0a0a] py-5 sm:py-6" aria-label="Browse by categories">
@@ -40,7 +96,7 @@ export function EventCategories() {
             </span>
           </div>
           <Link
-            to="/categories"
+            to="/events"
             className="text-[11px] font-bold text-[#FF2E4D] hover:underline uppercase tracking-wider"
           >
             VIEW ALL &gt;
@@ -49,14 +105,17 @@ export function EventCategories() {
 
         {/* Categories Grid / Scroll */}
         <div className="flex gap-3 sm:gap-4 overflow-x-auto hide-scrollbar pb-2 -mx-4 px-6 sm:mx-0 sm:px-0 snap-x snap-mandatory">
-          {categoriesList.map((category) => {
+          {items.map((category) => {
             const isActive = selectedId === category.id
             const Icon = category.icon
 
             return (
               <button
                 key={category.id}
-                onClick={() => setSelectedId(category.id)}
+                onClick={() => {
+                  setSelectedId(category.id)
+                  navigate(category.href)
+                }}
                 className={cn(
                   'flex flex-col items-center justify-center transition-all cursor-pointer rounded-2xl snap-start',
                   // Mobile
@@ -72,17 +131,30 @@ export function EventCategories() {
                 <div
                   className={cn(
                     'w-12 h-12 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all',
-                    isActive 
-                      ? 'bg-[#FF2E4D] sm:bg-white/20 shadow-[0_0_15px_rgba(255,46,77,0.5)] sm:shadow-none' 
+                    isActive
+                      ? 'bg-[#FF2E4D] sm:bg-white/20 shadow-[0_0_15px_rgba(255,46,77,0.5)] sm:shadow-none'
                       : 'bg-[#141414] sm:bg-[#1a1a1a] border border-neutral-800 sm:border-transparent'
                   )}
                 >
-                  <Icon className={cn('w-5 h-5', isActive ? 'text-white' : category.colorClass)} />
+                  {category.image ? (
+                    <img
+                      src={category.image}
+                      alt=""
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Icon
+                      className={cn('w-5 h-5', isActive ? 'text-white' : category.colorClass)}
+                    />
+                  )}
                 </div>
                 <span
                   className={cn(
                     'text-[10px] sm:text-xs leading-none text-center whitespace-nowrap',
-                    isActive ? 'font-bold sm:text-white text-[#FF2E4D]' : 'text-neutral-400 sm:text-neutral-300 font-medium'
+                    isActive
+                      ? 'font-bold sm:text-white text-[#FF2E4D]'
+                      : 'text-neutral-400 sm:text-neutral-300 font-medium'
                   )}
                 >
                   {category.label}

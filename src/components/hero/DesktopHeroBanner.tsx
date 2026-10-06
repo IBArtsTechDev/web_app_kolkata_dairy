@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { banners } from './data'
+import { useBanners } from '@/hooks/useBanners'
+import { toBannerSlides } from './bannerSlides'
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 24 },
@@ -17,13 +18,19 @@ const fadeInUp = {
 export function DesktopHeroBanner() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const navigate = useNavigate()
+  const { data: apiBanners } = useBanners()
+
+  const slides = toBannerSlides(apiBanners)
+  const activeIndex = slides.length ? currentIndex % slides.length : 0
+  const activeSlide = slides[activeIndex]
 
   useEffect(() => {
+    if (slides.length < 2) return
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % banners.length)
+      setCurrentIndex((prev) => (prev + 1) % slides.length)
     }, 3000)
     return () => clearInterval(timer)
-  }, [])
+  }, [slides.length])
 
   return (
     <section
@@ -35,9 +42,9 @@ export function DesktopHeroBanner() {
         <div className="absolute inset-0 w-full h-full bg-[#050505]">
           <AnimatePresence mode="popLayout">
             <motion.img
-              key={currentIndex}
-              src={banners[currentIndex]}
-              alt="Kolkata Night Event"
+              key={activeIndex}
+              src={activeSlide.image}
+              alt={activeSlide.title}
               initial={{ opacity: 0, scale: 1.05 }}
               animate={{ opacity: 0.6, scale: 1 }}
               exit={{ opacity: 0 }}
@@ -102,7 +109,11 @@ export function DesktopHeroBanner() {
               <Button
                 size="lg"
                 className="bg-[#FF2E4D] hover:bg-[#e02441] text-white px-6 py-4 rounded-xl h-auto text-[15px] font-bold transition-all active:scale-[0.99]"
-                onClick={() => navigate('/events')}
+                onClick={() =>
+                  activeSlide.link
+                    ? window.open(activeSlide.link, '_blank', 'noopener,noreferrer')
+                    : navigate('/events')
+                }
               >
                 Explore Top Events
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -128,7 +139,7 @@ export function DesktopHeroBanner() {
 
               {/* Carousel Indicator Dots */}
               <div className="flex items-center gap-2">
-                {banners.map((_, idx) => (
+                {slides.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setCurrentIndex(idx)}

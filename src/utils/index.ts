@@ -8,5 +8,5 @@ export {
   getEventStatusLabel,
   getEventStatusColor,
 } from './formatters'
-export { createEventSchema, searchSchema } from './validators'
-export type { CreateEventFormData } from './validators'
+export { createEventSchema, searchSchema, loginSchema, isEventCategory, EVENT_CATEGORIES } from './validators'
+export type { CreateEventFormData, LoginFormData } from './validators'

@@ -4,16 +4,17 @@ import type { CreateEventPayload, EventFilters, UpdateEventPayload } from '@/typ
 
 const QUERY_KEYS = {
   events: ['events'] as const,
+  adminEvents: ['admin', 'events'] as const,
   event: (id: string) => ['events', id] as const,
-  myEvents: ['events', 'me'] as const,
 }
 
-/** Hook to fetch paginated events */
-export function useEvents(filters: EventFilters = {}) {
+/** Hook to fetch paginated public events */
+export function useEvents(filters: EventFilters = {}, enabled = true) {
   return useQuery({
     queryKey: [...QUERY_KEYS.events, filters],
     queryFn: () => eventsApi.getAll(filters),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled,
+    staleTime: 5 * 60 * 1000,
   })
 }
 
@@ -29,7 +30,7 @@ export function useInfiniteEvents(filters: Omit<EventFilters, 'page'> = {}) {
   })
 }
 
-/** Hook to fetch a single event */
+/** Hook to fetch a single public event */
 export function useEvent(id: string) {
   return useQuery({
     queryKey: QUERY_KEYS.event(id),
@@ -38,33 +39,61 @@ export function useEvent(id: string) {
   })
 }
 
-/** Hook to create an event */
+/** Hook to fetch the admin event list (all statuses) */
+export function useAdminEvents(filters: EventFilters = {}) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.adminEvents, filters],
+    queryFn: () => eventsApi.adminList(filters),
+    enabled: true,
+  })
+}
+
+/** Hook to fetch a single event from the admin API */
+export function useAdminEvent(id: string | null) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.adminEvents, 'detail', id],
+    queryFn: () => eventsApi.adminGetById(id as string),
+    enabled: !!id,
+  })
+}
+
+/** Hook to create an event (admin) */
 export function useCreateEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (payload: CreateEventPayload) => eventsApi.create(payload),
+    mutationFn: ({ payload, image }: { payload: CreateEventPayload; image?: File }) =>
+      eventsApi.create(payload, image),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.events })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminEvents })
     },
   })
 }
 
-/** Hook to update an event */
+/** Hook to update an event (admin) */
 export function useUpdateEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UpdateEventPayload }) =>
-      eventsApi.update(id, payload),
+    mutationFn: ({
+      id,
+      payload,
+      image,
+    }: {
+      id: string
+      payload: UpdateEventPayload
+      image?: File
+    }) => eventsApi.update(id, payload, image),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.events })
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.event(id) })
+      queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.adminEvents, 'detail', id] })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminEvents })
     },
   })
 }
 
-/** Hook to delete an event */
+/** Hook to delete an event (admin) */
 export function useDeleteEvent() {
   const queryClient = useQueryClient()
 
@@ -72,19 +101,7 @@ export function useDeleteEvent() {
     mutationFn: (id: string) => eventsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.events })
-    },
-  })
-}
-
-/** Hook to register for an event */
-export function useRegisterForEvent() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (eventId: string) => eventsApi.register(eventId),
-    onSuccess: (_, eventId) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.event(eventId) })
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.events })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminEvents })
     },
   })
 }

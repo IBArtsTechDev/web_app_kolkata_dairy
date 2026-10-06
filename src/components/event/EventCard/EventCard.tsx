@@ -1,7 +1,13 @@
 import { Link } from 'react-router-dom'
 import { Calendar, MapPin, Users } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { formatDateRange, getEventStatusLabel, getEventStatusColor, getInitials } from '@/utils'
+import {
+  formatDateRange,
+  getEventStatusLabel,
+  getEventStatusColor,
+  getInitials,
+  formatCurrency,
+} from '@/utils'
 import type { Event } from '@/types'
 
 interface EventCardProps {
@@ -47,9 +53,11 @@ export function EventCard({ event }: EventCardProps) {
         {/* Content */}
         <div className="p-4">
           {/* Category tag */}
-          <span className="inline-block px-2 py-0.5 rounded-md bg-primary-50 text-primary-700 text-xs font-medium mb-2 capitalize">
-            {event.category}
-          </span>
+          {event.category && (
+            <span className="inline-block px-2 py-0.5 rounded-md bg-primary-50 text-primary-700 text-xs font-medium mb-2 capitalize">
+              {event.category}
+            </span>
+          )}
 
           {/* Title */}
           <h3 className="font-semibold text-white leading-snug mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
@@ -82,23 +90,30 @@ export function EventCard({ event }: EventCardProps) {
 
           {/* Footer */}
           <div className="flex items-center justify-between mt-4 pt-3 border-t border-neutral-800">
-            {/* Organizer */}
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
-                <span className="text-xs font-medium text-primary-700">
-                  {getInitials(event.organizer.name)}
+            {event.organizer ? (
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                  <span className="text-xs font-medium text-primary-700">
+                    {getInitials(event.organizer.name)}
+                  </span>
+                </div>
+                <span className="text-sm text-neutral-400 truncate max-w-[120px]">
+                  {event.organizer.name}
                 </span>
               </div>
-              <span className="text-sm text-neutral-400 truncate max-w-[120px]">
-                {event.organizer.name}
+            ) : (
+              <span className="text-sm font-semibold text-white truncate">
+                {event.isFree ? 'Free' : formatCurrency(event.ticketPrice ?? 0, event.currency)}
               </span>
-            </div>
+            )}
 
             {/* Attendee count */}
-            <div className="flex items-center gap-1 text-sm text-neutral-400">
-              <Users size={14} />
-              <span>{event.attendeeCount}</span>
-            </div>
+            {event.attendeeCount !== undefined && (
+              <div className="flex items-center gap-1 text-sm text-neutral-400">
+                <Users size={14} />
+                <span>{event.attendeeCount}</span>
+              </div>
+            )}
           </div>
         </div>
       </Card>

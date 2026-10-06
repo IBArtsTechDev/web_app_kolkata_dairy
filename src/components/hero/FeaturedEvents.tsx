@@ -1,8 +1,11 @@
 import { useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { trendingEvents } from './data'
+import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { Skeleton } from '@/components/common/Skeleton'
+import { useEvents } from '@/hooks/useEvents'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -17,8 +20,18 @@ const cardVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
 }
 
+const EVENT_LIMIT = 8
+
 export function FeaturedEvents() {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
+  const { data, isLoading, isError } = useEvents({
+    limit: EVENT_LIMIT,
+    sortBy: 'startsAt',
+    sortOrder: 'ASC',
+  })
+
+  const events = data?.data ?? []
 
   const scrollContainer = useCallback((direction: 'left' | 'right') => {
     const container = scrollContainerRef.current
@@ -27,6 +40,8 @@ export function FeaturedEvents() {
       container.scrollBy({ left: scrollAmount, behavior: 'smooth' })
     }
   }, [])
+
+  if (!isLoading && !isError && events.length === 0) return null
 
   return (
     <section className="w-full bg-[#0a0a0a] py-6 sm:py-8" aria-label="Trending events today">
@@ -67,53 +82,88 @@ export function FeaturedEvents() {
           ref={scrollContainerRef}
           className="flex gap-4 overflow-x-auto hide-scrollbar pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory"
         >
-          {trendingEvents.map((event) => (
-            <motion.article
-              key={event.id}
-              variants={cardVariants}
-              className={cn(
-                'flex-shrink-0 w-[240px] sm:w-[260px] rounded-2xl sm:rounded-[20px] overflow-hidden snap-start',
-                'bg-[#1c1c1e] sm:bg-[#1c1c1e]',
-                'transition-all group cursor-pointer hover:scale-[1.02]'
-              )}
-              aria-label={`Event: ${event.title}`}
-            >
-              {/* Event Image */}
-              <div className="relative h-40 sm:h-44 overflow-hidden">
-                <img
-                  src={event.image}
-                  alt={event.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
-                
-                {/* Bookmark Badge */}
-                <button
-                  className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center cursor-pointer hover:bg-black/80 transition-colors"
-                  aria-label={`Bookmark ${event.title}`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
-                    <path fillRule="evenodd" d="M6 3a3 3 0 00-3 3v12.75a.75.75 0 001.25.55l5.25-4.68 5.25 4.68a.75.75 0 001.25-.55V6a3 3 0 00-3-3H6z" clipRule="evenodd" />
-                  </svg>
-                </button>
+          {isLoading &&
+            Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="flex-shrink-0 w-[240px] sm:w-[260px] rounded-2xl overflow-hidden bg-[#1c1c1e]"
+              >
+                <Skeleton variant="rectangular" className="w-full h-40 sm:h-44 rounded-none" />
+                <div className="p-3 sm:p-4 space-y-2">
+                  <Skeleton width="75%" height={16} />
+                  <Skeleton width="55%" height={12} />
+                  <Skeleton width="40%" height={14} />
+                </div>
               </div>
+            ))}
 
-              {/* Event Info */}
-              <div className="p-3 sm:p-4 flex flex-col gap-1 sm:gap-1.5">
-                <h3 className="text-[15px] sm:text-base font-semibold text-white leading-tight">
-                  {event.title}
-                </h3>
-                
-                <p className="text-[12px] sm:text-[13px] text-neutral-400 font-medium">
-                  {event.date} • {event.time} • {event.location}
-                </p>
+          {isError && (
+            <div className="w-full py-8 text-center">
+              <p className="text-sm text-neutral-400">
+                We couldn&apos;t load trending events right now. Please try again shortly.
+              </p>
+            </div>
+          )}
 
-                <p className="text-[13px] sm:text-[14px] font-bold text-white mt-1">
-                  ₹{event.price.toLocaleString()} <span className="font-semibold text-white">Onwards</span>
-                </p>
-              </div>
-            </motion.article>
-          ))}
+          {!isLoading &&
+            events.map((event) => (
+              <motion.article
+                key={event.id}
+                variants={cardVariants}
+                onClick={() => navigate(`/events/${event.id}`)}
+                className={cn(
+                  'flex-shrink-0 w-[240px] sm:w-[260px] rounded-2xl sm:rounded-[20px] overflow-hidden snap-start',
+                  'bg-[#1c1c1e] sm:bg-[#1c1c1e]',
+                  'transition-all group cursor-pointer hover:scale-[1.02]'
+                )}
+                aria-label={`Event: ${event.title}`}
+              >
+                {/* Event Image */}
+                <div className="relative h-40 sm:h-44 overflow-hidden bg-gradient-to-br from-primary-400 to-secondary-500">
+                  {event.coverImage ? (
+                    <img
+                      src={event.coverImage}
+                      alt={event.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-3xl font-bold text-white/30">{event.title.slice(0, 2)}</span>
+                    </div>
+                  )}
+
+                  {/* Bookmark Badge */}
+                  <button
+                    onClick={(clickEvent) => clickEvent.stopPropagation()}
+                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center cursor-pointer hover:bg-black/80 transition-colors"
+                    aria-label={`Bookmark ${event.title}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
+                      <path fillRule="evenodd" d="M6 3a3 3 0 00-3 3v12.75a.75.75 0 001.25.55l5.25-4.68 5.25 4.68a.75.75 0 001.25-.55V6a3 3 0 00-3-3H6z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Event Info */}
+                <div className="p-3 sm:p-4 flex flex-col gap-1 sm:gap-1.5">
+                  <h3 className="text-[15px] sm:text-base font-semibold text-white leading-tight">
+                    {event.title}
+                  </h3>
+
+                  <p className="text-[12px] sm:text-[13px] text-neutral-400 font-medium">
+                    {format(parseISO(event.startDate), 'EEE, d MMM')} •{' '}
+                    {format(parseISO(event.startDate), 'HH:mm')} •{' '}
+                    {event.location.city || event.location.venue}
+                  </p>
+
+                  <p className="text-[13px] sm:text-[14px] font-bold text-white mt-1">
+                    ₹{(event.ticketPrice ?? 0).toLocaleString('en-IN')}{' '}
+                    <span className="font-semibold text-white">Onwards</span>
+                  </p>
+                </div>
+              </motion.article>
+            ))}
         </motion.div>
       </div>
     </section>
