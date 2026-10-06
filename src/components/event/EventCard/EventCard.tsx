@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Calendar, MapPin, Users } from 'lucide-react'
+import { Calendar, MapPin } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import {
   formatDateRange,
@@ -17,7 +17,7 @@ interface EventCardProps {
 export function EventCard({ event }: EventCardProps) {
   return (
     <Link to={`/events/${event.id}`} className="block group">
-      <Card className="h-full bg-[#141414] border border-neutral-800/50 hover:border-neutral-700 ring-0 cursor-pointer transition-all hover:shadow-xl p-0 rounded-2xl overflow-hidden">
+      <Card className="h-full bg-[#1c1c1e] border-none ring-0 cursor-pointer transition-transform duration-300 hover:scale-[1.02] p-0 rounded-2xl overflow-hidden">
         {/* Cover Image */}
         <div className="relative h-44 bg-gradient-to-br from-primary-400 to-secondary-500 overflow-hidden">
           {event.coverImage ? (
@@ -51,29 +51,31 @@ export function EventCard({ event }: EventCardProps) {
         </div>
 
         {/* Content */}
-        <div className="p-4">
+        <div className="p-4 flex flex-col gap-2">
           {/* Category tag */}
           {event.category && (
-            <span className="inline-block px-2 py-0.5 rounded-md bg-primary-50 text-primary-700 text-xs font-medium mb-2 capitalize">
-              {event.category}
-            </span>
+            <div>
+              <span className="inline-block px-2 py-0.5 rounded bg-white text-black text-[10px] font-semibold mb-1">
+                {event.category}
+              </span>
+            </div>
           )}
 
           {/* Title */}
-          <h3 className="font-semibold text-white leading-snug mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+          <h3 className="text-sm font-semibold text-white leading-tight line-clamp-2">
             {event.title}
           </h3>
 
           {/* Date & Location */}
-          <div className="space-y-1.5 text-sm text-neutral-400">
+          <div className="space-y-1 mt-1 text-[11px] text-neutral-400">
             <div className="flex items-center gap-1.5">
-              <Calendar size={14} className="shrink-0" />
+              <Calendar size={12} className="shrink-0" />
               <span className="truncate">{formatDateRange(event.startDate, event.endDate)}</span>
             </div>
 
-            {!event.isOnline && event.location.city && (
+            {!event.isOnline && (event.location.venue || event.location.city) && (
               <div className="flex items-center gap-1.5">
-                <MapPin size={14} className="shrink-0" />
+                <MapPin size={12} className="shrink-0" />
                 <span className="truncate">
                   {event.location.venue || event.location.city}
                 </span>
@@ -82,38 +84,17 @@ export function EventCard({ event }: EventCardProps) {
 
             {event.isOnline && (
               <div className="flex items-center gap-1.5">
-                <span className="text-xs">🌐</span>
+                <span className="text-[10px]">🌐</span>
                 <span>Online Event</span>
               </div>
             )}
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between mt-4 pt-3 border-t border-neutral-800">
-            {event.organizer ? (
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-medium text-primary-700">
-                    {getInitials(event.organizer.name)}
-                  </span>
-                </div>
-                <span className="text-sm text-neutral-400 truncate max-w-[120px]">
-                  {event.organizer.name}
-                </span>
-              </div>
-            ) : (
-              <span className="text-sm font-semibold text-white truncate">
-                {event.isFree ? 'Free' : formatCurrency(event.ticketPrice ?? 0, event.currency)}
-              </span>
-            )}
-
-            {/* Attendee count */}
-            {event.attendeeCount !== undefined && (
-              <div className="flex items-center gap-1 text-sm text-neutral-400">
-                <Users size={14} />
-                <span>{event.attendeeCount}</span>
-              </div>
-            )}
+          {/* Footer (Price) */}
+          <div className="mt-3">
+            <span className="text-xs font-bold text-white">
+              {event.isFree ? 'Free' : formatCurrency(event.ticketPrice ?? 0, event.currency)}
+            </span>
           </div>
         </div>
       </Card>

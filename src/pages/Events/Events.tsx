@@ -56,7 +56,7 @@ export function Events() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Page header */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -101,7 +101,7 @@ export function Events() {
             onClick={() => setEventFilters({ category: cat.value || undefined, page: 1 })}
             className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
               (eventFilters.category || '') === cat.value
-                ? 'bg-primary-600 text-white shadow-sm'
+                ? 'bg-blue-600 text-white shadow-sm'
                 : 'bg-[#141414] text-neutral-400 hover:bg-neutral-800'
             }`}
           >

@@ -7,6 +7,7 @@ import { CreateEvent } from '@/pages/CreateEvent'
 import { LoginPage } from '@/pages/Login'
 import { AdminPage } from '@/pages/Admin'
 import { NotFound } from '@/pages/NotFound'
+import { PrivacyPolicy, TermsOfService } from '@/pages/Legal'
 import { RequireAuth } from './guards'
 
 export const router = createBrowserRouter([
@@ -46,6 +47,14 @@ export const router = createBrowserRouter([
             <AdminPage />
           </RequireAuth>
         ),
+      },
+      {
+        path: 'privacy',
+        element: <PrivacyPolicy />,
+      },
+      {
+        path: 'terms',
+        element: <TermsOfService />,
       },
       {
         path: '*',

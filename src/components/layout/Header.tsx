@@ -1,44 +1,21 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, ChevronDown, Bell, ShieldCheck } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Search, Bell, ShieldCheck } from 'lucide-react'
 import { navigationItems } from '@/components/hero/data'
 import { SearchOverlay } from './SearchOverlay'
 import { useAppStore } from '@/store'
-import { getInitials } from '@/utils'
 import { cn } from '@/lib/utils'
 
 export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const user = useAppStore((state) => state.user)
   const isAuthenticated = useAppStore((state) => state.isAuthenticated)
-
-  const displayName = user?.name || 'Guest'
-  const initials = getInitials(displayName)
 
   return (
     <>
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       {/* Mobile-only Header */}
       <header className="sm:hidden flex flex-col px-4 pt-4 pb-2 bg-[#0a0a0a] gap-4 safe-area-top sticky top-0 z-50">
-        <div className="flex justify-between items-center w-full">
-          {/* User Profile */}
-          <div className="flex items-center gap-3">
-            <Avatar size="sm" className="w-10 h-10 border border-neutral-700">
-              <AvatarImage src={user?.profilePicture || undefined} alt={displayName} />
-              <AvatarFallback className="bg-neutral-800 text-white font-bold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col justify-center">
-              <p className="text-[10px] text-neutral-400 leading-none mb-1">
-                {isAuthenticated ? `Hello ${displayName}` : 'Hello there'}
-              </p>
-              <p className="text-sm font-semibold text-white leading-none">
-                {isAuthenticated ? 'Welcome Back!' : 'Welcome to Kolkata Diary'}
-              </p>
-            </div>
-          </div>
+        <div className="flex justify-end items-center w-full">
           
           {/* Notifications */}
           <button
@@ -107,13 +84,6 @@ export function Header() {
                 </span>
               </button>
 
-              {/* Location Pill */}
-              <button className="flex items-center gap-2 bg-[#1a1a1a] px-3 py-1.5 rounded-full border border-neutral-800 text-neutral-300 hover:text-white transition-colors text-xs font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent-red animate-pulse"></span>
-                <span>Kolkata</span>
-                <ChevronDown className="w-3 h-3 text-neutral-500" />
-              </button>
-
               {/* Admin / Sign in */}
               <Link
                 to={isAuthenticated ? '/admin' : '/login'}
@@ -121,24 +91,6 @@ export function Header() {
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
                 {isAuthenticated ? 'Admin' : 'Sign in'}
-              </Link>
-
-              {/* User Avatar */}
-              <Link
-                to={isAuthenticated ? '/admin' : '/login'}
-                className="flex items-center gap-2 pl-2 group"
-                aria-label={isAuthenticated ? 'Open admin console' : 'Sign in'}
-              >
-                <div className="text-right hidden md:block">
-                  <p className="text-[9px] text-neutral-500 uppercase tracking-wider leading-none mb-0.5">Welcome</p>
-                  <p className="text-xs font-medium text-white leading-none">{displayName}</p>
-                </div>
-                <Avatar size="sm" className="w-8 h-8 border border-neutral-700 group-hover:border-neutral-600 transition-colors">
-                  <AvatarImage src={user?.profilePicture || undefined} alt={displayName} />
-                  <AvatarFallback className="bg-neutral-800 text-white text-[10px] font-bold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
               </Link>
             </div>
           </div>

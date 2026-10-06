@@ -32,7 +32,8 @@ export function resolveAssetUrl(path?: string | null): string | undefined {
   }
 
   try {
-    return new URL(normalized, API_BASE_URL).toString()
+    const baseUrl = new URL(API_BASE_URL)
+    return new URL(normalized, baseUrl.origin + '/').toString()
   } catch {
     return `/${normalized}`
   }

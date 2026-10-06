@@ -16,11 +16,7 @@ export const banners = [
 
 export const navigationItems: NavigationItem[] = [
   { label: 'Explore Events', href: '/events', isActive: true },
-  { label: 'Categories', href: '/categories' },
-  { label: 'Dining & Deals', href: '/deals' },
-  { label: 'Heritage', href: '/heritage' },
-  { label: 'Sports Mania', href: '/sports' },
-  { label: 'My Bookings', href: '/bookings' },
+  { label: 'My Bookmarks', href: '/bookmarks' },
 ]
 
 export const categories: CategoryItem[] = [
