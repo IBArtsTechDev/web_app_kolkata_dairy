@@ -82,11 +82,11 @@ function extractError(error: unknown): ApiError {
   }
 
   const payload = error.response.data as
-    | { message?: string; errorCode?: string; errors?: ApiFieldError[] }
+    | { message?: string; errorCode?: string; error?: string; errors?: ApiFieldError[] }
     | undefined
 
   const apiError: ApiError = {
-    message: payload?.message || error.response.statusText || fallback.message,
+    message: payload?.message || payload?.error || error.response.statusText || fallback.message,
     statusCode: error.response.status,
     errorCode: payload?.errorCode,
     errors: Array.isArray(payload?.errors) ? payload.errors : undefined,
@@ -102,6 +102,9 @@ apiClient.interceptors.response.use(
 
     if (apiError.statusCode === 401) {
       clearAuthToken()
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:unauthorized', { detail: apiError }))
+      }
     }
 
     return Promise.reject(apiError)

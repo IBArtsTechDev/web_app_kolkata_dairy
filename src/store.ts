@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY, clearAuthToken, setAuthToken } from '@/api/client'
-import type { AuthUser, EventFilters, LoginResponse } from '@/types'
+import type { AuthResponse, AuthUser, EventFilters } from '@/types'
 
 interface AppState {
   /** Current event filters */
@@ -12,12 +12,18 @@ interface AppState {
   searchQuery: string
   setSearchQuery: (query: string) => void
 
-  /** Admin session */
+  /** Auth session */
   token: string | null
   user: AuthUser | null
   isAuthenticated: boolean
-  login: (session: LoginResponse) => void
+  login: (session: AuthResponse) => void
   logout: () => void
+
+  /** Auth modal */
+  isAuthModalOpen: boolean
+  authModalRedirect?: string
+  openAuthModal: (redirect?: string) => void
+  closeAuthModal: () => void
 }
 
 const defaultFilters: EventFilters = {
@@ -40,38 +46,56 @@ function readSession(): { token: string | null; user: AuthUser | null } {
 
 const initialSession = readSession()
 
-export const useAppStore = create<AppState>((set) => ({
-  eventFilters: defaultFilters,
-  setEventFilters: (filters) =>
-    set((state) => ({ eventFilters: { ...state.eventFilters, ...filters } })),
-  resetEventFilters: () => set({ eventFilters: defaultFilters }),
+export const useAppStore = create<AppState>((set) => {
+  // Listen for 401 unauthorized broadcasts
+  if (typeof window !== 'undefined') {
+    window.addEventListener('auth:unauthorized', () => {
+      set({ token: null, user: null, isAuthenticated: false })
+    })
+  }
 
-  searchQuery: '',
-  setSearchQuery: (query) => set({ searchQuery: query }),
+  return {
+    eventFilters: defaultFilters,
+    setEventFilters: (filters) =>
+      set((state) => ({ eventFilters: { ...state.eventFilters, ...filters } })),
+    resetEventFilters: () => set({ eventFilters: defaultFilters }),
 
-  token: initialSession.token,
-  user: initialSession.user,
-  isAuthenticated: Boolean(initialSession.token),
-  login: (session) => {
-    const user: AuthUser = {
-      id: session.id,
-      publicId: session.publicId,
-      name: session.name,
-      email: session.email,
-      username: session.username,
-      role: session.role,
-      profilePicture: session.profilePicture,
-      age: session.age,
-      gender: session.gender,
-      phoneNumber: session.phoneNumber,
-    }
+    searchQuery: '',
+    setSearchQuery: (query) => set({ searchQuery: query }),
 
-    setAuthToken(session.accessToken)
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user))
-    set({ token: session.accessToken, user, isAuthenticated: true })
-  },
-  logout: () => {
-    clearAuthToken()
-    set({ token: null, user: null, isAuthenticated: false })
-  },
-}))
+    token: initialSession.token,
+    user: initialSession.user,
+    isAuthenticated: Boolean(initialSession.token),
+
+    login: (session) => {
+      const user: AuthUser = {
+        id: session.id,
+        publicId: session.publicId,
+        name: session.name,
+        email: session.email,
+        username: session.username ?? null,
+        role: session.role ?? 'USER',
+        profilePicture: session.profilePicture ?? null,
+        age: session.age ?? null,
+        gender: session.gender ?? null,
+        countryCode: session.countryCode ?? null,
+        phoneNumber: session.phoneNumber ?? null,
+      }
+
+      setAuthToken(session.accessToken)
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user))
+      set({ token: session.accessToken, user, isAuthenticated: true, isAuthModalOpen: false })
+    },
+
+    logout: () => {
+      clearAuthToken()
+      set({ token: null, user: null, isAuthenticated: false })
+    },
+
+    isAuthModalOpen: false,
+    authModalRedirect: undefined,
+    openAuthModal: (redirect?: string) =>
+      set({ isAuthModalOpen: true, authModalRedirect: redirect }),
+    closeAuthModal: () => set({ isAuthModalOpen: false, authModalRedirect: undefined }),
+  }
+})

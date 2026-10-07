@@ -15,8 +15,9 @@ export const banners = [
 ]
 
 export const navigationItems: NavigationItem[] = [
-  { label: 'Explore Events', href: '/events', isActive: true },
-  { label: 'My Bookmarks', href: '/bookmarks' },
+  { label: 'Explore Events', href: '/events' },
+  { label: 'Bookmarks', href: '/bookmarks' },
+  { label: 'Favorites', href: '/favorites' },
 ]
 
 export const categories: CategoryItem[] = [

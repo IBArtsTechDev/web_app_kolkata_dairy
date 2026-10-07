@@ -5,6 +5,8 @@ import { Events } from '@/pages/Events'
 import { EventDetailsPage } from '@/pages/EventDetails'
 import { CreateEvent } from '@/pages/CreateEvent'
 import { LoginPage } from '@/pages/Login'
+import { BookmarksPage } from '@/pages/Bookmarks'
+import { FavoritesPage } from '@/pages/Favorites'
 import { AdminPage } from '@/pages/Admin'
 import { NotFound } from '@/pages/NotFound'
 import { PrivacyPolicy, TermsOfService } from '@/pages/Legal'
@@ -39,6 +41,22 @@ export const router = createBrowserRouter([
       {
         path: 'login',
         element: <LoginPage />,
+      },
+      {
+        path: 'bookmarks',
+        element: (
+          <RequireAuth>
+            <BookmarksPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'favorites',
+        element: (
+          <RequireAuth>
+            <FavoritesPage />
+          </RequireAuth>
+        ),
       },
       {
         path: 'admin',

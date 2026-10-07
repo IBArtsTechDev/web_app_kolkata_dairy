@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/common/Skeleton'
+import { BookmarkButton, FavoriteButton } from '@/components/engagement'
 import { useEvents } from '@/hooks/useEvents'
 
 const containerVariants = {
@@ -133,16 +134,23 @@ export function FeaturedEvents() {
                     </div>
                   )}
 
-                  {/* Bookmark Badge */}
-                  <button
-                    onClick={(clickEvent) => clickEvent.stopPropagation()}
-                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center cursor-pointer hover:bg-black/80 transition-colors"
-                    aria-label={`Bookmark ${event.title}`}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
-                      <path fillRule="evenodd" d="M6 3a3 3 0 00-3 3v12.75a.75.75 0 001.25.55l5.25-4.68 5.25 4.68a.75.75 0 001.25-.55V6a3 3 0 00-3-3H6z" clipRule="evenodd" />
-                    </svg>
-                  </button>
+                  {/* Action Badges */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+                    <FavoriteButton
+                      entityType="event"
+                      entityId={event.id}
+                      entityTitle={event.title}
+                      size={14}
+                      className="w-7 h-7"
+                    />
+                    <BookmarkButton
+                      entityType="event"
+                      entityId={event.id}
+                      entityTitle={event.title}
+                      size={14}
+                      className="w-7 h-7"
+                    />
+                  </div>
                 </div>
 
                 {/* Event Info */}

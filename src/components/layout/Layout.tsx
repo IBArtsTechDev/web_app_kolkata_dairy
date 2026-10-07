@@ -2,6 +2,8 @@ import { Outlet } from 'react-router-dom'
 import { Header } from './Header'
 import { Footer } from './Footer'
 import { MobileNav } from './MobileNav'
+import { ToastContainer } from '@/components/common/Toast'
+import { AuthModal } from '@/components/auth'
 
 export function Layout() {
   return (
@@ -14,6 +16,8 @@ export function Layout() {
 
       <Footer />
       <MobileNav />
+      <AuthModal />
+      <ToastContainer />
     </div>
   )
 }

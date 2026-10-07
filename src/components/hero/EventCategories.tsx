@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/common/Skeleton'
+import { FavoriteButton } from '@/components/engagement'
 import { useCategories } from '@/hooks/useCategories'
 import { isEventCategory } from '@/utils/validators'
 import type { LucideIcon } from 'lucide-react'
@@ -110,56 +111,68 @@ export function EventCategories() {
             const Icon = category.icon
 
             return (
-              <button
-                key={category.id}
-                onClick={() => {
-                  setSelectedId(category.id)
-                  navigate(category.href)
-                }}
-                className={cn(
-                  'flex flex-col items-center justify-center transition-all cursor-pointer rounded-2xl snap-start',
-                  // Mobile
-                  'gap-2 py-2 px-2 min-w-[70px]',
-                  // Desktop
-                  'sm:gap-2.5 sm:w-[140px] sm:h-[104px] sm:py-0 sm:px-0 sm:min-w-0',
-                  isActive
-                    ? 'sm:bg-gradient-to-b sm:from-[#ff445d] sm:to-[#d61a32] sm:shadow-[0_0_25px_rgba(255,46,77,0.3)] text-[#FF2E4D] sm:text-white'
-                    : 'sm:bg-[#111111] sm:border sm:border-[#1e1e1e] sm:hover:border-white/10 sm:hover:bg-[#161616]'
-                )}
-                aria-label={`Browse ${category.label} events`}
-              >
-                <div
+              <div key={category.id} className="relative group snap-start shrink-0">
+                <button
+                  onClick={() => {
+                    setSelectedId(category.id)
+                    navigate(category.href)
+                  }}
                   className={cn(
-                    'w-12 h-12 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all',
+                    'flex flex-col items-center justify-center transition-all cursor-pointer rounded-2xl w-full',
+                    // Mobile
+                    'gap-2 py-2 px-2 min-w-[70px]',
+                    // Desktop
+                    'sm:gap-2.5 sm:w-[140px] sm:h-[104px] sm:py-0 sm:px-0 sm:min-w-0',
                     isActive
-                      ? 'bg-[#FF2E4D] sm:bg-white/20 shadow-[0_0_15px_rgba(255,46,77,0.5)] sm:shadow-none'
-                      : 'bg-[#141414] sm:bg-[#1a1a1a] border border-neutral-800 sm:border-transparent'
+                      ? 'sm:bg-gradient-to-b sm:from-[#ff445d] sm:to-[#d61a32] sm:shadow-[0_0_25px_rgba(255,46,77,0.3)] text-[#FF2E4D] sm:text-white'
+                      : 'sm:bg-[#111111] sm:border sm:border-[#1e1e1e] sm:hover:border-white/10 sm:hover:bg-[#161616]',
                   )}
+                  aria-label={`Browse ${category.label} events`}
                 >
-                  {category.image ? (
-                    <img
-                      src={category.image}
-                      alt=""
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Icon
-                      className={cn('w-5 h-5', isActive ? 'text-white' : category.colorClass)}
-                    />
-                  )}
+                  <div
+                    className={cn(
+                      'w-12 h-12 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all',
+                      isActive
+                        ? 'bg-[#FF2E4D] sm:bg-white/20 shadow-[0_0_15px_rgba(255,46,77,0.5)] sm:shadow-none'
+                        : 'bg-[#141414] sm:bg-[#1a1a1a] border border-neutral-800 sm:border-transparent',
+                    )}
+                  >
+                    {category.image ? (
+                      <img
+                        src={category.image}
+                        alt=""
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Icon
+                        className={cn('w-5 h-5', isActive ? 'text-white' : category.colorClass)}
+                      />
+                    )}
+                  </div>
+                  <span
+                    className={cn(
+                      'text-[10px] sm:text-xs leading-none text-center whitespace-nowrap',
+                      isActive
+                        ? 'font-bold sm:text-white text-[#FF2E4D]'
+                        : 'text-neutral-400 sm:text-neutral-300 font-medium',
+                    )}
+                  >
+                    {category.label}
+                  </span>
+                </button>
+
+                {/* Favorite badge on hover */}
+                <div className="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
+                  <FavoriteButton
+                    entityType="category"
+                    entityId={category.id}
+                    entityTitle={category.label}
+                    size={11}
+                    className="w-6 h-6 bg-black/80 border-white/20"
+                  />
                 </div>
-                <span
-                  className={cn(
-                    'text-[10px] sm:text-xs leading-none text-center whitespace-nowrap',
-                    isActive
-                      ? 'font-bold sm:text-white text-[#FF2E4D]'
-                      : 'text-neutral-400 sm:text-neutral-300 font-medium'
-                  )}
-                >
-                  {category.label}
-                </span>
-              </button>
+              </div>
             )
           })}
         </div>

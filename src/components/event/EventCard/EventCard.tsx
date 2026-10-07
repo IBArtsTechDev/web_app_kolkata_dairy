@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Calendar, MapPin } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { BookmarkButton, FavoriteButton } from '@/components/engagement'
 import {
   formatDateRange,
   getEventStatusLabel,
@@ -17,7 +18,7 @@ interface EventCardProps {
 export function EventCard({ event }: EventCardProps) {
   return (
     <Link to={`/events/${event.id}`} className="block group">
-      <Card className="h-full bg-[#1c1c1e] border-none ring-0 cursor-pointer transition-transform duration-300 hover:scale-[1.02] p-0 rounded-2xl overflow-hidden">
+      <Card className="h-full bg-[#1c1c1e] border-none ring-0 cursor-pointer transition-transform duration-300 hover:scale-[1.02] p-0 rounded-2xl overflow-hidden relative">
         {/* Cover Image */}
         <div className="relative h-44 bg-gradient-to-br from-primary-400 to-secondary-500 overflow-hidden">
           {event.coverImage ? (
@@ -42,9 +43,27 @@ export function EventCard({ event }: EventCardProps) {
             {getEventStatusLabel(event.status)}
           </span>
 
+          {/* Action buttons (Favorite + Bookmark) */}
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
+            <FavoriteButton
+              entityType="event"
+              entityId={event.id}
+              entityTitle={event.title}
+              size={14}
+              className="w-7 h-7"
+            />
+            <BookmarkButton
+              entityType="event"
+              entityId={event.id}
+              entityTitle={event.title}
+              size={14}
+              className="w-7 h-7"
+            />
+          </div>
+
           {/* Free badge */}
           {event.isFree && (
-            <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-semibold bg-white/90 text-primary-700">
+            <span className="absolute bottom-2.5 left-3 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 text-neutral-900 shadow-sm">
               Free
             </span>
           )}

@@ -4,6 +4,7 @@ import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/common/Skeleton'
+import { BookmarkButton, FavoriteButton } from '@/components/engagement'
 import { useEvents } from '@/hooks/useEvents'
 
 const containerVariants = {
@@ -129,16 +130,23 @@ export function SpotlightSection() {
                     </div>
                   )}
 
-                  {/* Save button */}
-                  <button
-                    onClick={(clickEvent) => clickEvent.preventDefault()}
-                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white transition-colors"
-                    aria-label={`Save ${event.title}`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </button>
+                  {/* Actions */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+                    <FavoriteButton
+                      entityType="event"
+                      entityId={event.id}
+                      entityTitle={event.title}
+                      size={14}
+                      className="w-7 h-7"
+                    />
+                    <BookmarkButton
+                      entityType="event"
+                      entityId={event.id}
+                      entityTitle={event.title}
+                      size={14}
+                      className="w-7 h-7"
+                    />
+                  </div>
                 </Link>
 
                 {/* Event Info */}

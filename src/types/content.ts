@@ -1,3 +1,14 @@
+export type {
+  AuthUser,
+  AuthResponse,
+  AuthResponse as LoginResponse,
+  LoginPayload,
+  LoginPayload as LoginCredentials,
+  RegisterPayload,
+  AdminLoginCredentials,
+} from './auth'
+
+
 /** Banner entity returned by the API (image resolved to a usable URL) */
 export interface Banner {
   id: string
@@ -20,30 +31,4 @@ export interface Category {
   description: string | null
   isActive: boolean
   createdAt: string
-}
-
-/** Authenticated admin session user */
-export interface AuthUser {
-  id: number
-  publicId: string
-  name: string
-  email: string
-  username: string | null
-  role: string
-  profilePicture: string | null
-  age: number | null
-  gender: string | null
-  phoneNumber: string
-}
-
-/** Credentials posted to the admin login endpoint */
-export interface LoginCredentials {
-  email: string
-  password: string
-}
-
-/** Login response payload (user + tokens) */
-export interface LoginResponse extends AuthUser {
-  accessToken: string
-  refreshToken: string
 }
