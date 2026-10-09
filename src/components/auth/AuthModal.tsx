@@ -174,7 +174,7 @@ export function AuthModal() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="hover:text-neutral-300 pointer-events-auto"
+                    className="hover:text-neutral-700 flex pointer-events-auto"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>

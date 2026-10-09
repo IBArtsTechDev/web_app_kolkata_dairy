@@ -45,6 +45,11 @@ export function mapEvent(dto: EventDto): Event {
   const latitude = toNumber(dto.latitude)
   const longitude = toNumber(dto.longitude)
 
+  let coverImage = resolveAssetUrl(dto.imageUrl)
+  if (!coverImage && dto.title?.toLowerCase().includes('durga puja')) {
+    coverImage = '/durga_puja_fallback.jpg'
+  }
+
   return {
     id: dto.eventId,
     createdAt: dto.createdAt,
@@ -66,7 +71,7 @@ export function mapEvent(dto: EventDto): Event {
           ? { latitude, longitude }
           : undefined,
     },
-    coverImage: resolveAssetUrl(dto.imageUrl),
+    coverImage,
     isOnline: false,
     isFree: dto.isFree !== undefined ? toBoolean(dto.isFree) : ticketPrice === 0,
     ticketPrice,

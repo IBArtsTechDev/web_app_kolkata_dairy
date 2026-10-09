@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AlertTriangle, Search, SlidersHorizontal, X } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -6,14 +6,9 @@ import { EventList } from '@/components/event/EventList'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/common/Input'
 import { useEvents } from '@/hooks/useEvents'
+import { useCategories } from '@/hooks/useCategories'
 import { useAppStore } from '@/store'
-import { EVENT_CATEGORIES, isEventCategory } from '@/utils/validators'
 import type { EventCategory } from '@/types'
-
-const categories: { value: EventCategory | ''; label: string }[] = [
-  { value: '', label: 'All' },
-  ...EVENT_CATEGORIES.map((category) => ({ value: category, label: category })),
-]
 
 const DEBOUNCE_DELAY = 400
 
@@ -24,12 +19,21 @@ export function Events() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { data, isLoading, isError, error, refetch } = useEvents(eventFilters)
+  const { data: categoriesData } = useCategories()
+
+  const categories = useMemo(() => {
+    const apiCategories = categoriesData ?? []
+    return [
+      { value: '', label: 'All' },
+      ...apiCategories.map((cat) => ({ value: cat.name as EventCategory, label: cat.name })),
+    ]
+  }, [categoriesData])
 
   // Deep link support: /events?category=Music
   useEffect(() => {
     const category = searchParams.get('category')
-    if (category && isEventCategory(category)) {
-      setEventFilters({ category, page: 1 })
+    if (category) {
+      setEventFilters({ category: category as EventCategory, page: 1 })
     }
   }, [searchParams, setEventFilters])
 
@@ -97,7 +101,7 @@ export function Events() {
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none">
         {categories.map((cat) => (
           <button
-            key={cat.value}
+            key={cat.label}
             onClick={() => setEventFilters({ category: cat.value || undefined, page: 1 })}
             className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
               (eventFilters.category || '') === cat.value

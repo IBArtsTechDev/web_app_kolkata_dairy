@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, MapPin } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useBanners } from '@/hooks/useBanners'
 import { toBannerSlides } from './bannerSlides'
@@ -119,15 +119,7 @@ export function DesktopHeroBanner() {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
 
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-neutral-700 bg-black/60 hover:bg-neutral-800 hover:border-neutral-500 text-neutral-200 hover:text-white px-6 py-4 rounded-xl h-auto text-[15px] font-medium transition-all"
-                onClick={() => navigate('/events')}
-              >
-                <MapPin className="w-4 h-4 mr-2 text-[#FF2E4D]" />
-                Browse by Neighborhood
-              </Button>
+
             </div>
 
             {/* Status Pill and Dots - Right Aligned */}

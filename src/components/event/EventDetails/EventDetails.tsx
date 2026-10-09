@@ -23,7 +23,7 @@ export function EventDetails({ event, onRegister, isRegistering = false }: Event
   const navigate = useNavigate()
 
   return (
-    <div className="max-w-[768px] mx-auto space-y-6">
+    <div className="max-w-[768px] mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
       {/* Back navigation */}
       <button
         onClick={() => navigate(-1)}

@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
+import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/common/Skeleton'
 import { BookmarkButton, FavoriteButton } from '@/components/engagement'
-import { useEvents } from '@/hooks/useEvents'
+import { useInfiniteEvents } from '@/hooks/useEvents'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -30,16 +31,13 @@ const badgeColors: Record<string, string> = {
 
 const fallbackBadgeColors = ['bg-accent-red/90 text-white', 'bg-accent-amber/90 text-black']
 
-const SPOTLIGHT_LIMIT = 3
-
 export function SpotlightSection() {
-  const { data, isLoading, isError } = useEvents({
-    limit: SPOTLIGHT_LIMIT,
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteEvents({
     sortBy: 'createdAt',
     sortOrder: 'DESC',
   })
 
-  const events = data?.data ?? []
+  const events = data?.pages.flatMap((page) => page.data) ?? []
 
   if (!isLoading && !isError && events.length === 0) return null
 
@@ -64,15 +62,10 @@ export function SpotlightSection() {
         </div>
 
         {/* Spotlight Cards */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-        >
+        {/* Spotlight Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading &&
-            Array.from({ length: SPOTLIGHT_LIMIT }).map((_, index) => (
+            Array.from({ length: 12 }).map((_, index) => (
               <div key={index} className="rounded-2xl overflow-hidden bg-[#141414]">
                 <Skeleton variant="rectangular" className="w-full h-48 sm:h-52 rounded-none" />
                 <div className="p-4 space-y-2">
@@ -95,6 +88,9 @@ export function SpotlightSection() {
               <motion.article
                 key={event.id}
                 variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-50px' }}
                 className={cn(
                   'rounded-2xl overflow-hidden',
                   'bg-[#141414] border border-neutral-800/50 hover:border-neutral-700',
@@ -181,7 +177,28 @@ export function SpotlightSection() {
                 </div>
               </motion.article>
             ))}
-        </motion.div>
+        </div>
+
+        {/* Load More Button */}
+        {hasNextPage && (
+          <div className="mt-8 flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 bg-[#141414] rounded-full px-8 flex items-center gap-2"
+            >
+              {isFetchingNextPage ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                'Load More'
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   )

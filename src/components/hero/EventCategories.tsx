@@ -14,7 +14,6 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/common/Skeleton'
-import { FavoriteButton } from '@/components/engagement'
 import { useCategories } from '@/hooks/useCategories'
 import { isEventCategory } from '@/utils/validators'
 import type { LucideIcon } from 'lucide-react'
@@ -162,16 +161,7 @@ export function EventCategories() {
                   </span>
                 </button>
 
-                {/* Favorite badge on hover */}
-                <div className="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
-                  <FavoriteButton
-                    entityType="category"
-                    entityId={category.id}
-                    entityTitle={category.label}
-                    size={11}
-                    className="w-6 h-6 bg-black/80 border-white/20"
-                  />
-                </div>
+
               </div>
             )
           })}

@@ -75,11 +75,7 @@ export function FeaturedEvents() {
         </div>
 
         {/* Events Horizontal Scroll */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
+        <div
           ref={scrollContainerRef}
           className="flex gap-4 overflow-x-auto hide-scrollbar pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory"
         >
@@ -87,7 +83,7 @@ export function FeaturedEvents() {
             Array.from({ length: 4 }).map((_, index) => (
               <div
                 key={index}
-                className="flex-shrink-0 w-[240px] sm:w-[260px] rounded-2xl overflow-hidden bg-[#1c1c1e]"
+                className="flex-shrink-0 w-[240px] sm:w-[260px] rounded-2xl overflow-hidden bg-[#1c1c1e] first:ml-4 sm:first:ml-0"
               >
                 <Skeleton variant="rectangular" className="w-full h-40 sm:h-44 rounded-none" />
                 <div className="p-3 sm:p-4 space-y-2">
@@ -111,11 +107,14 @@ export function FeaturedEvents() {
               <motion.article
                 key={event.id}
                 variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-50px' }}
                 onClick={() => navigate(`/events/${event.id}`)}
                 className={cn(
                   'flex-shrink-0 w-[240px] sm:w-[260px] rounded-2xl sm:rounded-[20px] overflow-hidden snap-start',
                   'bg-[#1c1c1e] sm:bg-[#1c1c1e]',
-                  'transition-all group cursor-pointer hover:scale-[1.02]'
+                  'transition-all group cursor-pointer hover:scale-[1.02] first:ml-4 sm:first:ml-0'
                 )}
                 aria-label={`Event: ${event.title}`}
               >
@@ -172,7 +171,7 @@ export function FeaturedEvents() {
                 </div>
               </motion.article>
             ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   )

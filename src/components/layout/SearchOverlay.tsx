@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CalendarDays, ChevronLeft, MapPin, Search } from 'lucide-react'
 import { useEvents } from '@/hooks'
+import { useCategories } from '@/hooks/useCategories'
 import { formatCurrency, formatDate, getInitials } from '@/utils'
-import { categories } from '@/components/hero/data'
 
 interface SearchOverlayProps {
   isOpen: boolean
@@ -24,6 +24,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   const query = debouncedTerm.length >= 2 ? debouncedTerm : ''
   const { data, isLoading } = useEvents({ search: query, limit: 6 }, query.length > 0 && isOpen)
   const { data: recommendedData } = useEvents({ limit: 4, sortBy: 'startsAt', sortOrder: 'ASC' }, query.length === 0 && isOpen)
+  const { data: apiCategories } = useCategories(4)
   const results = data?.data ?? []
   const recommendedEvents = recommendedData?.data ?? []
 
@@ -213,17 +214,23 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
               <div className="px-4 sm:px-0 mb-8">
                 <h3 className="text-[15px] sm:text-base font-semibold text-white mb-4">Popular Categories</h3>
                 <div className="flex sm:flex-wrap gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 sm:pb-0">
-                  {categories.slice(0, 4).map((cat, idx) => (
+                  {apiCategories?.slice(0, 4).map((cat) => (
                     <button
-                      key={idx}
+                      key={cat.id}
                       onClick={() => {
-                        navigate(`/events?category=${cat.label}`)
+                        navigate(`/events?category=${encodeURIComponent(cat.name)}`)
                         onClose()
                       }}
                       className="flex-shrink-0 flex flex-col items-center justify-between bg-[#1c1c1e] sm:bg-[#141414] border border-white/5 rounded-2xl p-3 w-[85px] h-[100px] sm:w-[100px] sm:h-[110px] hover:bg-[#242426] sm:hover:bg-[#1a1a1c] transition-all sm:hover:scale-105"
                     >
-                      <span className="text-[10px] sm:text-[11px] font-bold text-center text-white leading-tight whitespace-pre-wrap">{cat.label.toUpperCase().replace(' & ', '\n&\n')}</span>
-                      <span className="text-3xl sm:text-4xl mt-1 drop-shadow-md">{cat.icon}</span>
+                      <span className="text-[10px] sm:text-[11px] font-bold text-center text-white leading-tight whitespace-pre-wrap">{cat.name.toUpperCase().replace(' & ', '\n&\n')}</span>
+                      <div className="mt-1 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10">
+                        {cat.icon ? (
+                          <img src={cat.icon} alt="" className="w-full h-full object-contain drop-shadow-md" />
+                        ) : (
+                          <span className="text-xl sm:text-2xl font-bold text-neutral-500">{cat.name.charAt(0).toUpperCase()}</span>
+                        )}
+                      </div>
                     </button>
                   ))}
                 </div>

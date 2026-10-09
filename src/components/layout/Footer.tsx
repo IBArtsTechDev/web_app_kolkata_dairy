@@ -53,7 +53,7 @@ export function Footer() {
           </div>
 
           {/* Get the Mobile App */}
-          <div>
+          <div className="hidden sm:block">
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">
               Get the Mobile App
             </h4>

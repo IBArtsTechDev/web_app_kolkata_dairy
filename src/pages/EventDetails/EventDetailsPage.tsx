@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { EventDetails } from '@/components/event/EventDetails'
 import { useEvent } from '@/hooks/useEvents'
 import { useAppContext } from '@/context'
@@ -8,6 +9,10 @@ export function EventDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { addToast } = useAppContext()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [id])
 
   const { data: event, isLoading, error } = useEvent(id || '')
 
@@ -25,7 +30,7 @@ export function EventDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-[768px] mx-auto space-y-6">
+      <div className="max-w-[768px] mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
         <Skeleton width={100} height={16} />
         <Skeleton variant="rectangular" className="w-full h-56 sm:h-72 rounded-2xl" />
         <Skeleton width="60%" height={32} />
