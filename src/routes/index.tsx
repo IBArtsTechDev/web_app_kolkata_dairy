@@ -5,6 +5,8 @@ import { Events } from '@/pages/Events'
 import { EventDetailsPage } from '@/pages/EventDetails'
 import { CreateEvent } from '@/pages/CreateEvent'
 import { LoginPage } from '@/pages/Login'
+import { ResetPasswordPage } from '@/pages/ResetPassword/ResetPasswordPage'
+import { ForgotPasswordPage } from '@/pages/ForgotPassword'
 import { BookmarksPage } from '@/pages/Bookmarks'
 import { FavoritesPage } from '@/pages/Favorites'
 import { AdminPage } from '@/pages/Admin'
@@ -41,6 +43,14 @@ export const router = createBrowserRouter([
       {
         path: 'login',
         element: <LoginPage />,
+      },
+      {
+        path: 'auth/forgot-password',
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: 'auth/forgot-password/reset',
+        element: <ResetPasswordPage />,
       },
       {
         path: 'bookmarks',

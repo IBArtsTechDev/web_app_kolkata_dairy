@@ -4,10 +4,10 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { AlertTriangle, Lock, Mail, User as UserIcon, ShieldCheck, Phone } from 'lucide-react'
+import { AlertTriangle, Lock, Mail, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/common/Input'
-import { useLogin, useRegister, useAdminLogin } from '@/hooks/useAuth'
+import { useLogin, useRegister } from '@/hooks/useAuth'
 import { AvatarPicker } from '@/components/auth'
 import { useAppStore } from '@/store'
 import { useAppContext } from '@/context'
@@ -40,13 +40,13 @@ export function LoginPage() {
   const { addToast } = useAppContext()
 
   const [mode, setMode] = useState<AuthMode>('login')
-  const [isAdminMode, setIsAdminMode] = useState(false)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false)
 
   const loginMutation = useLogin()
   const registerMutation = useRegister()
-  const adminLoginMutation = useAdminLogin()
 
   const {
     register: loginRegister,
@@ -67,28 +67,19 @@ export function LoginPage() {
   })
 
   const state = location.state as LocationState | null
-  const redirectTo = state?.from || (isAdminMode ? '/admin' : '/')
+  const redirectTo = state?.from || '/'
 
   if (isAuthenticated) {
     return <Navigate to={redirectTo} replace />
   }
 
   const onLoginSubmit = (data: LoginFormData) => {
-    if (isAdminMode) {
-      adminLoginMutation.mutate(data, {
-        onSuccess: () => {
-          addToast({ message: 'Signed in to Admin Portal', type: 'success' })
-          navigate('/admin', { replace: true })
-        },
-      })
-    } else {
-      loginMutation.mutate(data, {
-        onSuccess: () => {
-          addToast({ message: 'Welcome back!', type: 'success' })
-          navigate(redirectTo, { replace: true })
-        },
-      })
-    }
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        addToast({ message: 'Welcome back!', type: 'success' })
+        navigate(redirectTo, { replace: true })
+      },
+    })
   }
 
   const onRegisterSubmit = (data: RegisterFormData) => {
@@ -109,14 +100,9 @@ export function LoginPage() {
     )
   }
 
-  const isPending =
-    loginMutation.isPending ||
-    adminLoginMutation.isPending ||
-    registerMutation.isPending
+  const isPending = loginMutation.isPending || registerMutation.isPending
 
-  const errorMessage =
-    (isAdminMode ? adminLoginMutation.error?.message : loginMutation.error?.message) ||
-    registerMutation.error?.message
+  const errorMessage = loginMutation.error?.message || registerMutation.error?.message
 
   return (
     <motion.div
@@ -126,49 +112,41 @@ export function LoginPage() {
     >
       <div className="mb-6 text-center">
         <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-          {mode === 'register'
-            ? 'Create an Account'
-            : isAdminMode
-              ? 'Admin Portal'
-              : 'Welcome Back'}
+          {mode === 'register' ? 'Create an Account' : 'Welcome Back'}
         </h1>
         <p className="text-neutral-400 mt-1 text-xs sm:text-sm">
           {mode === 'register'
             ? 'Join to bookmark events, save favorites and more'
-            : isAdminMode
-              ? 'Sign in with your administrative credentials'
-              : 'Sign in to access your bookmarks and saved favorites'}
+            : 'Sign in to access your bookmarks and saved favorites'}
         </p>
       </div>
 
       <div className="bg-[#141414] rounded-2xl border border-neutral-800 p-5 sm:p-7 shadow-xl">
         {/* Top tab selector */}
-        {!isAdminMode && (
-          <div className="flex rounded-xl bg-neutral-900 p-1 border border-neutral-800 mb-6">
-            <button
-              type="button"
-              onClick={() => setMode('login')}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
-                mode === 'login'
-                  ? 'bg-neutral-800 text-white shadow-sm'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode('register')}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
-                mode === 'register'
-                  ? 'bg-neutral-800 text-white shadow-sm'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              Register
-            </button>
-          </div>
-        )}
+        <div className="flex rounded-xl bg-neutral-900 p-1 border border-neutral-800 mb-6">
+          <button
+            type="button"
+            onClick={() => setMode('login')}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
+              mode === 'login'
+                ? 'bg-neutral-800 text-white shadow-sm'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('register')}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
+              mode === 'register'
+                ? 'bg-neutral-800 text-white shadow-sm'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            Register
+          </button>
+        </div>
 
         {/* Error message */}
         {errorMessage && (
@@ -193,14 +171,33 @@ export function LoginPage() {
               {...loginRegister('email')}
             />
 
-            <Input
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              leftIcon={<Lock size={18} />}
-              error={loginErrors.password?.message}
-              {...loginRegister('password')}
-            />
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-neutral-300">Password</label>
+                <Link
+                  to="/auth/forgot-password"
+                  className="text-xs text-neutral-400 hover:text-[#FF2E4D] transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                leftIcon={<Lock size={18} />}
+                error={loginErrors.password?.message}
+                {...loginRegister('password')}
+                rightIcon={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="hover:text-neutral-700 pointer-events-auto flex"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                }
+              />
+            </div>
 
             <Button
               type="submit"
@@ -208,13 +205,13 @@ export function LoginPage() {
               disabled={isPending}
               className="w-full bg-[#FF2E4D] hover:bg-[#e02441] text-white mt-2"
             >
-              {isPending ? 'Signing in…' : isAdminMode ? 'Sign In as Admin' : 'Sign In'}
+              {isPending ? 'Signing in…' : 'Sign In'}
             </Button>
           </form>
         )}
 
         {/* Form: Register */}
-        {mode === 'register' && !isAdminMode && (
+        {mode === 'register' && (
           <form onSubmit={handleRegisterSubmit(onRegisterSubmit)} className="space-y-4" noValidate>
             <AvatarPicker
               file={avatarFile}
@@ -255,11 +252,20 @@ export function LoginPage() {
 
             <Input
               label="Password (min 6 characters)"
-              type="password"
+              type={showRegisterPassword ? 'text' : 'password'}
               placeholder="••••••••"
               leftIcon={<Lock size={18} />}
               error={registerErrors.password?.message}
               {...registerRegister('password')}
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                  className="hover:text-neutral-300 pointer-events-auto"
+                >
+                  {showRegisterPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              }
             />
 
             <Button
@@ -272,22 +278,6 @@ export function LoginPage() {
             </Button>
           </form>
         )}
-
-        {/* Admin toggle */}
-        <div className="mt-6 pt-4 border-t border-neutral-800/80 flex items-center justify-between text-xs text-neutral-400">
-          <span>{isAdminMode ? 'Regular user?' : 'Are you an administrator?'}</span>
-          <button
-            type="button"
-            onClick={() => {
-              setIsAdminMode((prev) => !prev)
-              setMode('login')
-            }}
-            className="text-neutral-300 hover:text-white font-medium flex items-center gap-1 transition-colors"
-          >
-            <ShieldCheck size={14} className={isAdminMode ? 'text-emerald-400' : ''} />
-            {isAdminMode ? 'Switch to User Login' : 'Admin Login'}
-          </button>
-        </div>
       </div>
 
       <p className="text-center text-xs text-neutral-500 mt-6">

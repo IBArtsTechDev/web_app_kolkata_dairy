@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Mail, Lock, User as UserIcon, AlertTriangle, Phone } from 'lucide-react'
+import { Mail, Lock, User as UserIcon, AlertTriangle, Phone, Eye, EyeOff } from 'lucide-react'
 import { Modal } from '@/components/common/Modal'
 import { Input } from '@/components/common/Input'
 import { Button } from '@/components/ui/button'
@@ -34,6 +35,8 @@ export function AuthModal() {
   const [activeTab, setActiveTab] = useState<AuthTab>('login')
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false)
   const { addToast } = useAppContext()
 
   const loginMutation = useLogin()
@@ -150,14 +153,34 @@ export function AuthModal() {
               {...loginRegister('email')}
             />
 
-            <Input
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              leftIcon={<Lock size={16} />}
-              error={loginErrors.password?.message}
-              {...loginRegister('password')}
-            />
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-medium text-neutral-300">Password</label>
+                <Link
+                  to="/auth/forgot-password"
+                  onClick={handleClose}
+                  className="text-xs text-neutral-400 hover:text-[#FF2E4D] transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                leftIcon={<Lock size={16} />}
+                error={loginErrors.password?.message}
+                {...loginRegister('password')}
+                rightIcon={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="hover:text-neutral-300 pointer-events-auto"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                }
+              />
+            </div>
 
             <Button
               type="submit"
@@ -211,11 +234,20 @@ export function AuthModal() {
 
             <Input
               label="Password (min 6 chars)"
-              type="password"
+              type={showRegisterPassword ? 'text' : 'password'}
               placeholder="••••••••"
               leftIcon={<Lock size={16} />}
               error={registerErrors.password?.message}
               {...registerRegister('password')}
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                  className="hover:text-neutral-300 pointer-events-auto"
+                >
+                  {showRegisterPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              }
             />
 
             <Button
