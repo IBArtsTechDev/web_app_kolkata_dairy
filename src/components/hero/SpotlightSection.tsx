@@ -8,13 +8,6 @@ import { Skeleton } from '@/components/common/Skeleton'
 import { BookmarkButton, FavoriteButton } from '@/components/engagement'
 import { useInfiniteEvents } from '@/hooks/useEvents'
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08 },
-  },
-}
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },

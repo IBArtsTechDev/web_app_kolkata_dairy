@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Globe, MessageCircle, Share2, PlayCircle } from 'lucide-react'
+
 
 const footerLinks = {
   legal: [
@@ -7,13 +7,6 @@ const footerLinks = {
     { label: 'Terms and Conditions', href: '/terms' },
   ],
 }
-
-const socialLinks = [
-  { icon: Globe, href: 'https://instagram.com', label: 'Instagram' },
-  { icon: MessageCircle, href: 'https://twitter.com', label: 'Twitter' },
-  { icon: Share2, href: 'https://facebook.com', label: 'Facebook' },
-  { icon: PlayCircle, href: 'https://youtube.com', label: 'Youtube' },
-]
 
 export function Footer() {
   return (
@@ -31,25 +24,6 @@ export function Footer() {
               The premiere nightlife, entertainment, and heritage pass system for the City of Joy.
               Discover secret gigs, book luxury dining tables, and reserve curated cultural walks.
             </p>
-
-            {/* Social Icons */}
-            <div className="flex items-center gap-3">
-              {socialLinks.map((social) => {
-                const Icon = social.icon
-                return (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-neutral-800/50 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors"
-                    aria-label={social.label}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                  </a>
-                )
-              })}
-            </div>
           </div>
 
           {/* Get the Mobile App */}

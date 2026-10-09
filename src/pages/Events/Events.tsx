@@ -21,10 +21,10 @@ export function Events() {
   const { data, isLoading, isError, error, refetch } = useEvents(eventFilters)
   const { data: categoriesData } = useCategories()
 
-  const categories = useMemo(() => {
+  const categories: { value: EventCategory | undefined; label: string }[] = useMemo(() => {
     const apiCategories = categoriesData ?? []
     return [
-      { value: '', label: 'All' },
+      { value: undefined, label: 'All' },
       ...apiCategories.map((cat) => ({ value: cat.name as EventCategory, label: cat.name })),
     ]
   }, [categoriesData])
@@ -102,9 +102,9 @@ export function Events() {
         {categories.map((cat) => (
           <button
             key={cat.label}
-            onClick={() => setEventFilters({ category: cat.value || undefined, page: 1 })}
+            onClick={() => setEventFilters({ category: cat.value, page: 1 })}
             className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              (eventFilters.category || '') === cat.value
+              eventFilters.category === cat.value
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'bg-[#141414] text-neutral-400 hover:bg-neutral-800'
             }`}

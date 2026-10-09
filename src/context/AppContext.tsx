@@ -15,6 +15,8 @@ export interface Toast {
   id: string
   message: string
   type: 'success' | 'error' | 'info' | 'warning'
+  /** Optional — invoked when the toast body is clicked (e.g. push deep links) */
+  onClick?: () => void
 }
 
 const TOAST_DURATION = 5000

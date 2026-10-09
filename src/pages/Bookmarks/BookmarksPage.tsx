@@ -22,7 +22,7 @@ import { useAppContext } from '@/context'
 import type { EngagementItem, HydratedEvent, HydratedCategory } from '@/types'
 
 export function BookmarksPage() {
-  const [filterType, setFilterType] = useState<'all' | 'event' | 'category'>('all')
+  const [filterType] = useState<'all' | 'event' | 'category'>('all')
   const [page, setPage] = useState(1)
   const limit = 20
   const queryClient = useQueryClient()
@@ -71,22 +71,6 @@ export function BookmarksPage() {
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-1.5 bg-[#141414] p-1 rounded-xl border border-neutral-800 self-start sm:self-auto">
-          {(['all', 'event', 'category'] as const).map((type) => (
-            <button
-              key={type}
-              onClick={() => setFilterType(type)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
-                filterType === type
-                  ? 'bg-neutral-800 text-white shadow-sm'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              {type === 'all' ? 'All Items' : `${type}s`}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Loading state */}

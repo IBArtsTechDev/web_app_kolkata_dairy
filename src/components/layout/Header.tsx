@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   Search,
-  Bell,
   ShieldCheck,
   Bookmark,
   Heart,
@@ -12,6 +11,7 @@ import {
 } from 'lucide-react'
 import { navigationItems } from '@/components/hero/data'
 import { SearchOverlay } from './SearchOverlay'
+import { NotificationBell } from '@/components/notifications'
 import { useAppStore } from '@/store'
 import { useLogout } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
@@ -21,7 +21,8 @@ import { resolveAssetUrl } from '@/api'
 export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const desktopMenuRef = useRef<HTMLDivElement>(null)
   const location = useLocation()
 
   const isAuthenticated = useAppStore((state) => state.isAuthenticated)
@@ -32,7 +33,16 @@ export function Header() {
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      const isOutsideMobile = mobileMenuRef.current && !mobileMenuRef.current.contains(target)
+      const isOutsideDesktop = desktopMenuRef.current && !desktopMenuRef.current.contains(target)
+      
+      // If the click is outside BOTH menus (the ones that exist), close the menu.
+      // If we only check one, clicking inside mobile menu might be considered "outside" desktop menu.
+      if (
+        (!mobileMenuRef.current || isOutsideMobile) && 
+        (!desktopMenuRef.current || isOutsideDesktop)
+      ) {
         setIsUserMenuOpen(false)
       }
     }
@@ -49,6 +59,73 @@ export function Header() {
 
   const isAdmin = user?.role === 'ADMIN'
 
+  const userDropdownMenu = isUserMenuOpen && (
+    <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#141414] border border-neutral-800 shadow-2xl py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
+      <div className="px-4 py-2 border-b border-neutral-800/80 flex items-center gap-2.5">
+        <div className="w-9 h-9 rounded-full overflow-hidden bg-[#FF2E4D] text-white flex items-center justify-center text-xs font-bold uppercase shrink-0 border border-neutral-700">
+          {user?.profilePicture ? (
+            <img
+              src={resolveAssetUrl(user.profilePicture)}
+              alt={user.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            getInitials(user?.name || user?.email || 'U')
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-white truncate">{user?.name || 'User'}</p>
+          <p className="text-[11px] text-neutral-400 truncate">{user?.email}</p>
+          <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[9px] font-semibold bg-neutral-800 text-neutral-300">
+            {user?.role || 'USER'}
+          </span>
+        </div>
+      </div>
+
+      <div className="py-1">
+        <Link
+          to="/bookmarks"
+          className="flex items-center gap-2.5 px-4 py-2 text-neutral-300 hover:text-white hover:bg-neutral-800/60 transition-colors"
+        >
+          <Bookmark size={15} className="text-amber-400" />
+          <span>My Bookmarks</span>
+        </Link>
+
+        <Link
+          to="/favorites"
+          className="flex items-center gap-2.5 px-4 py-2 text-neutral-300 hover:text-white hover:bg-neutral-800/60 transition-colors"
+        >
+          <Heart size={15} className="text-rose-400" />
+          <span>My Favorites</span>
+        </Link>
+
+        {isAdmin && (
+          <Link
+            to="/admin"
+            className="flex items-center gap-2.5 px-4 py-2 text-neutral-300 hover:text-white hover:bg-neutral-800/60 transition-colors"
+          >
+            <ShieldCheck size={15} className="text-emerald-400" />
+            <span>Admin Portal</span>
+          </Link>
+        )}
+      </div>
+
+      <div className="border-t border-neutral-800/80 pt-1">
+        <button
+          type="button"
+          onClick={() => {
+            setIsUserMenuOpen(false)
+            logout()
+          }}
+          className="w-full flex items-center gap-2.5 px-4 py-2 text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+        >
+          <LogOut size={15} />
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </div>
+  )
+
   return (
     <>
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
@@ -64,25 +141,28 @@ export function Header() {
 
           <div className="flex items-center gap-2">
             {/* Notifications */}
-            <button
-              className="w-9 h-9 rounded-full bg-[#141414] border border-neutral-800 flex items-center justify-center relative"
-              aria-label="Notifications"
-            >
-              <Bell className="w-4 h-4 text-neutral-400" />
-              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-accent-red rounded-full border border-[#141414]" />
-            </button>
+            <NotificationBell />
 
             {/* Auth button on mobile */}
             {isAuthenticated ? (
-              <div className="relative" ref={menuRef}>
+              <div className="relative" ref={mobileMenuRef}>
                 <button
                   type="button"
                   onClick={() => setIsUserMenuOpen((prev) => !prev)}
                   className="w-9 h-9 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs font-bold text-white uppercase"
                   aria-label="User account"
                 >
-                  {getInitials(user?.name || user?.email || 'U')}
+                  {user?.profilePicture ? (
+                    <img
+                      src={resolveAssetUrl(user.profilePicture)}
+                      alt={user.name}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    getInitials(user?.name || user?.email || 'U')
+                  )}
                 </button>
+                {userDropdownMenu}
               </div>
             ) : (
               <button
@@ -160,9 +240,12 @@ export function Header() {
                 </span>
               </button>
 
+              {/* Notifications (desktop) */}
+              <NotificationBell />
+
               {/* User Account / Sign In */}
               {isAuthenticated ? (
-                <div className="relative" ref={menuRef}>
+                <div className="relative" ref={desktopMenuRef}>
                   <button
                     type="button"
                     onClick={() => setIsUserMenuOpen((prev) => !prev)}
@@ -186,72 +269,7 @@ export function Header() {
                   </button>
 
                   {/* Dropdown Menu */}
-                  {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#141414] border border-neutral-800 shadow-2xl py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
-                      <div className="px-4 py-2 border-b border-neutral-800/80 flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-full overflow-hidden bg-[#FF2E4D] text-white flex items-center justify-center text-xs font-bold uppercase shrink-0 border border-neutral-700">
-                          {user?.profilePicture ? (
-                            <img
-                              src={resolveAssetUrl(user.profilePicture)}
-                              alt={user.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            getInitials(user?.name || user?.email || 'U')
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-white truncate">{user?.name || 'User'}</p>
-                          <p className="text-[11px] text-neutral-400 truncate">{user?.email}</p>
-                          <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[9px] font-semibold bg-neutral-800 text-neutral-300">
-                            {user?.role || 'USER'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="py-1">
-                        <Link
-                          to="/bookmarks"
-                          className="flex items-center gap-2.5 px-4 py-2 text-neutral-300 hover:text-white hover:bg-neutral-800/60 transition-colors"
-                        >
-                          <Bookmark size={15} className="text-amber-400" />
-                          <span>My Bookmarks</span>
-                        </Link>
-
-                        <Link
-                          to="/favorites"
-                          className="flex items-center gap-2.5 px-4 py-2 text-neutral-300 hover:text-white hover:bg-neutral-800/60 transition-colors"
-                        >
-                          <Heart size={15} className="text-rose-400" />
-                          <span>My Favorites</span>
-                        </Link>
-
-                        {isAdmin && (
-                          <Link
-                            to="/admin"
-                            className="flex items-center gap-2.5 px-4 py-2 text-neutral-300 hover:text-white hover:bg-neutral-800/60 transition-colors"
-                          >
-                            <ShieldCheck size={15} className="text-emerald-400" />
-                            <span>Admin Portal</span>
-                          </Link>
-                        )}
-                      </div>
-
-                      <div className="border-t border-neutral-800/80 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsUserMenuOpen(false)
-                            logout()
-                          }}
-                          className="w-full flex items-center gap-2.5 px-4 py-2 text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
-                        >
-                          <LogOut size={15} />
-                          <span>Sign Out</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  {userDropdownMenu}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">

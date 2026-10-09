@@ -45,7 +45,20 @@ export function ToastContainer() {
             >
               <Icon className="w-5 h-5 shrink-0 mt-0.5" />
               <div className="flex-1 text-xs sm:text-sm font-medium text-neutral-100">
-                {toast.message}
+                {toast.onClick ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      toast.onClick?.()
+                      removeToast(toast.id)
+                    }}
+                    className="text-left w-full hover:opacity-80 transition-opacity"
+                  >
+                    {toast.message}
+                  </button>
+                ) : (
+                  toast.message
+                )}
               </div>
               <button
                 onClick={() => removeToast(toast.id)}

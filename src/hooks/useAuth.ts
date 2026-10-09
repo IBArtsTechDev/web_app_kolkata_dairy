@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/api/auth'
+import { syncPushToken, unregisterPushToken } from '@/lib/push'
 import { useAppStore } from '@/store'
 import type {
   AdminLoginCredentials,
@@ -19,6 +20,8 @@ export function useLogin() {
       login(session)
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] })
       queryClient.invalidateQueries({ queryKey: ['favorites'] })
+      // Link the (possibly anonymous) push device to the freshly signed-in user
+      void syncPushToken()
     },
   })
 }
@@ -34,6 +37,8 @@ export function useRegister() {
       login(session)
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] })
       queryClient.invalidateQueries({ queryKey: ['favorites'] })
+      // Link the (possibly anonymous) push device to the new account
+      void syncPushToken()
     },
   })
 }
@@ -59,8 +64,12 @@ export function useLogout() {
   const queryClient = useQueryClient()
 
   return () => {
+    // Deactivate this device's push row FIRST (reason `logout`) while the auth
+    // token is still available; the permission itself is left untouched.
+    void unregisterPushToken()
     logout()
     queryClient.removeQueries({ queryKey: ['bookmarks'] })
     queryClient.removeQueries({ queryKey: ['favorites'] })
+    queryClient.removeQueries({ queryKey: ['notifications'] })
   }
 }

@@ -26,3 +26,10 @@ export {
   useDeleteCategory,
 } from './useCategories'
 export { useLogin } from './useAuth'
+export {
+  useNotifications,
+  useUnreadCount,
+  useMarkNotificationRead,
+  useMarkAllRead,
+  useDeleteNotification,
+} from './useNotifications'
