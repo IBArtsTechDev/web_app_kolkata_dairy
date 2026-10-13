@@ -43,3 +43,11 @@ export interface AdminLoginCredentials {
   email: string
   password: string
 }
+
+/** Update profile payload for PATCH /profile */
+export interface UpdateProfilePayload {
+  name?: string
+  phoneNumber?: string | null
+  countryCode?: string | null
+  profilePicture?: File | null
+}

@@ -18,12 +18,18 @@ interface AppState {
   isAuthenticated: boolean
   login: (session: AuthResponse) => void
   logout: () => void
+  updateUser: (user: Partial<AuthUser>) => void
 
   /** Auth modal */
   isAuthModalOpen: boolean
   authModalRedirect?: string
   openAuthModal: (redirect?: string) => void
   closeAuthModal: () => void
+
+  /** Profile modal */
+  isProfileModalOpen: boolean
+  openProfileModal: () => void
+  closeProfileModal: () => void
 }
 
 const defaultFilters: EventFilters = {
@@ -89,7 +95,20 @@ export const useAppStore = create<AppState>((set) => {
 
     logout: () => {
       clearAuthToken()
-      set({ token: null, user: null, isAuthenticated: false })
+      set({ token: null, user: null, isAuthenticated: false, isProfileModalOpen: false })
+    },
+
+    updateUser: (updatedFields) => {
+      set((state) => {
+        if (!state.user) return state
+        const updatedUser: AuthUser = { ...state.user, ...updatedFields }
+        try {
+          localStorage.setItem(AUTH_USER_KEY, JSON.stringify(updatedUser))
+        } catch {
+          // ignore localStorage error
+        }
+        return { user: updatedUser }
+      })
     },
 
     isAuthModalOpen: false,
@@ -97,5 +116,9 @@ export const useAppStore = create<AppState>((set) => {
     openAuthModal: (redirect?: string) =>
       set({ isAuthModalOpen: true, authModalRedirect: redirect }),
     closeAuthModal: () => set({ isAuthModalOpen: false, authModalRedirect: undefined }),
+
+    isProfileModalOpen: false,
+    openProfileModal: () => set({ isProfileModalOpen: true }),
+    closeProfileModal: () => set({ isProfileModalOpen: false }),
   }
 })

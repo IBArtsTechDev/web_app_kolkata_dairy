@@ -63,6 +63,18 @@ function showBackgroundNotification(payload) {
     tag: data.eventId || data.notificationId || 'kolkata-diary',
     data: data,
   })
+
+  // Broadcast to all open tabs so notifications list and badge update immediately
+  if (self.clients && self.clients.matchAll) {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      windowClients.forEach((client) => {
+        client.postMessage({
+          type: 'NOTIFICATION_RECEIVED',
+          payload: payload,
+        })
+      })
+    }).catch(() => {})
+  }
 }
 
 // Background (tab minimised / closed) — the browser does NOT auto-display
@@ -91,9 +103,17 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      const existing = windowClients.find((client) => client.url === targetUrl)
-      if (existing && 'focus' in existing) {
-        return existing.focus()
+      for (const client of windowClients) {
+        client.postMessage({
+          type: 'NOTIFICATION_CLICKED',
+          data: data,
+        })
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus()
+        }
+      }
+      if (windowClients.length > 0 && 'focus' in windowClients[0]) {
+        return windowClients[0].focus()
       }
       return clients.openWindow(targetUrl)
     }),

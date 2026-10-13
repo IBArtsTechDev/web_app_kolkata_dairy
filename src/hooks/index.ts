@@ -33,3 +33,4 @@ export {
   useMarkAllRead,
   useDeleteNotification,
 } from './useNotifications'
+export { useProfile, useUpdateProfile } from './useProfile'

@@ -71,6 +71,39 @@ function PushNotificationBridge() {
     }
   }, [addToast, queryClient])
 
+  // Invalidate queries when the service worker receives or handles background push notifications
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return
+
+    const handleSwMessage = (event: MessageEvent) => {
+      if (
+        event.data?.type === 'NOTIFICATION_RECEIVED' ||
+        event.data?.type === 'NOTIFICATION_CLICKED'
+      ) {
+        void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      }
+    }
+
+    navigator.serviceWorker.addEventListener('message', handleSwMessage)
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handleSwMessage)
+    }
+  }, [queryClient])
+
+  // Invalidate notifications queries as soon as user switches back to this tab
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
+  }, [queryClient])
+
   return null
 }
 

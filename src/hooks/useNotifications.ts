@@ -3,19 +3,25 @@ import { notificationsApi } from '@/api/notifications'
 import { useAppStore } from '@/store'
 import type { NotificationsListResponse, UnreadCountResponse } from '@/types'
 
+export interface UseNotificationsOptions {
+  refetchInterval?: number | false
+}
+
 /** Fetch the signed-in user's inbox (paginated) */
-export function useNotifications(page = 1, limit = 20) {
+export function useNotifications(page = 1, limit = 20, options?: UseNotificationsOptions) {
   const isAuthenticated = useAppStore((state) => state.isAuthenticated)
 
   return useQuery<NotificationsListResponse, Error>({
     queryKey: ['notifications', page, limit],
     queryFn: () => notificationsApi.list(page, limit),
     enabled: isAuthenticated,
-    staleTime: 30 * 1000,
+    staleTime: 5 * 1000,
+    refetchOnWindowFocus: true,
+    refetchInterval: options?.refetchInterval,
   })
 }
 
-/** Unread badge count (polled every minute, invalidated on every push/mutation) */
+/** Unread badge count (polled every 10s, invalidated on every push/mutation/window focus) */
 export function useUnreadCount() {
   const isAuthenticated = useAppStore((state) => state.isAuthenticated)
 
@@ -23,8 +29,9 @@ export function useUnreadCount() {
     queryKey: ['notifications', 'unread-count'],
     queryFn: () => notificationsApi.unreadCount(),
     enabled: isAuthenticated,
-    refetchInterval: 60_000,
-    staleTime: 30 * 1000,
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
+    staleTime: 5 * 1000,
   })
 }
 

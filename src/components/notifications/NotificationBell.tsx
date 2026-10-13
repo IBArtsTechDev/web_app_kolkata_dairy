@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   Bell,
   BellOff,
@@ -40,10 +40,16 @@ function readPermission(): PermissionState {
  */
 export function NotificationBell() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { addToast } = useAppContext()
   const isAuthenticated = useAppStore((state) => state.isAuthenticated)
 
   const [isOpen, setIsOpen] = useState(false)
+
+  // Automatically close dropdown on navigation
+  useEffect(() => {
+    setIsOpen(false)
+  }, [location.pathname])
   const [page, setPage] = useState(1)
   const [permission, setPermission] = useState<PermissionState>(readPermission)
   const [isEnabling, setIsEnabling] = useState(false)
@@ -52,11 +58,21 @@ export function NotificationBell() {
   const containerRef = useRef<HTMLDivElement>(null)
   const limit = 10
 
-  const listQuery = useNotifications(page, limit)
+  const listQuery = useNotifications(page, limit, {
+    refetchInterval: isOpen ? 5000 : false,
+  })
   const unreadQuery = useUnreadCount()
   const markRead = useMarkNotificationRead()
   const markAllRead = useMarkAllRead()
   const deleteNotification = useDeleteNotification()
+
+  // Immediately fetch latest notifications and badge count whenever dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      void listQuery.refetch()
+      void unreadQuery.refetch()
+    }
+  }, [isOpen])
 
   const unreadCount = unreadQuery.data?.unreadCount ?? 0
   const items = listQuery.data?.items ?? []
@@ -141,12 +157,15 @@ export function NotificationBell() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="w-9 h-9 rounded-full bg-[#141414] border border-neutral-800 hover:border-neutral-700 flex items-center justify-center relative transition-colors"
+        className={cn(
+          'w-9 h-9 rounded-full bg-[#141414] border border-neutral-800 hover:border-neutral-700 flex items-center justify-center relative transition-colors',
+          isOpen && 'border-neutral-600 bg-neutral-800/80',
+        )}
         aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <Bell className="w-4 h-4 text-neutral-400" />
+        <Bell className={cn('w-4 h-4 text-neutral-400', isOpen && 'text-white')} />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF2E4D] text-[10px] leading-none font-bold text-white flex items-center justify-center border border-[#0a0a0a]">
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -155,7 +174,15 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 rounded-2xl bg-[#141414] border border-neutral-800 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <>
+          {/* Mobile backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs sm:hidden"
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+
+          <div className="fixed inset-x-3 top-[calc(env(safe-area-inset-top,0px)+3.5rem)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-96 max-w-md sm:max-w-sm mx-auto sm:mx-0 rounded-2xl bg-[#141414] border border-neutral-800 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           {/* Panel header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
             <div className="flex items-center gap-2">
@@ -166,17 +193,22 @@ export function NotificationBell() {
                 </span>
               )}
             </div>
-            {isAuthenticated && unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={() => markAllRead.mutate()}
-                disabled={markAllRead.isPending}
-                className="flex items-center gap-1 text-[11px] font-medium text-neutral-400 hover:text-white transition-colors disabled:opacity-50"
-              >
-                <CheckCheck size={13} />
-                Mark all read
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {listQuery.isFetching && !listQuery.isLoading && (
+                <Loader2 size={12} className="animate-spin text-neutral-500" />
+              )}
+              {isAuthenticated && unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => markAllRead.mutate()}
+                  disabled={markAllRead.isPending}
+                  className="flex items-center gap-1 text-[11px] font-medium text-neutral-400 hover:text-white transition-colors disabled:opacity-50"
+                >
+                  <CheckCheck size={13} />
+                  Mark all read
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Push opt-in / blocked notice */}
@@ -220,7 +252,7 @@ export function NotificationBell() {
           )}
 
           {/* Inbox list */}
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-[min(22rem,calc(100dvh-14rem))] sm:max-h-80 overflow-y-auto overscroll-contain">
             {!isAuthenticated ? (
               <div className="px-4 py-8 text-center">
                 <Inbox size={22} className="mx-auto text-neutral-600 mb-2" />
@@ -354,7 +386,8 @@ export function NotificationBell() {
             </div>
           )}
         </div>
-      )}
-    </div>
+      </>
+    )}
+  </div>
   )
 }

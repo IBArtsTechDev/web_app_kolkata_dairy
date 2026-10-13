@@ -4,6 +4,7 @@ import { Footer } from './Footer'
 import { MobileNav } from './MobileNav'
 import { ToastContainer } from '@/components/common/Toast'
 import { AuthModal } from '@/components/auth'
+import { ProfileModal } from '@/components/profile'
 
 export function Layout() {
   const location = useLocation()
@@ -20,6 +21,7 @@ export function Layout() {
       {!isEventDetails && <Footer />}
       {!isEventDetails && <MobileNav />}
       <AuthModal />
+      <ProfileModal />
       <ToastContainer />
     </div>
   )

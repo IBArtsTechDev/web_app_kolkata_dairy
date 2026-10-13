@@ -28,6 +28,7 @@ export function Header() {
   const isAuthenticated = useAppStore((state) => state.isAuthenticated)
   const user = useAppStore((state) => state.user)
   const openAuthModal = useAppStore((state) => state.openAuthModal)
+  const openProfileModal = useAppStore((state) => state.openProfileModal)
   const logout = useLogout()
 
   // Close dropdown on outside click
@@ -61,7 +62,14 @@ export function Header() {
 
   const userDropdownMenu = isUserMenuOpen && (
     <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#141414] border border-neutral-800 shadow-2xl py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
-      <div className="px-4 py-2 border-b border-neutral-800/80 flex items-center gap-2.5">
+      <button
+        type="button"
+        onClick={() => {
+          setIsUserMenuOpen(false)
+          openProfileModal()
+        }}
+        className="w-full text-left px-4 py-2.5 border-b border-neutral-800/80 flex items-center gap-2.5 hover:bg-neutral-800/50 transition-colors group cursor-pointer"
+      >
         <div className="w-9 h-9 rounded-full overflow-hidden bg-[#FF2E4D] text-white flex items-center justify-center text-xs font-bold uppercase shrink-0 border border-neutral-700">
           {user?.profilePicture ? (
             <img
@@ -74,15 +82,24 @@ export function Header() {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-white truncate">{user?.name || 'User'}</p>
+          <p className="font-semibold text-white truncate group-hover:text-primary-400 transition-colors">{user?.name || 'User'}</p>
           <p className="text-[11px] text-neutral-400 truncate">{user?.email}</p>
-          <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[9px] font-semibold bg-neutral-800 text-neutral-300">
-            {user?.role || 'USER'}
-          </span>
         </div>
-      </div>
+      </button>
 
       <div className="py-1">
+        <button
+          type="button"
+          onClick={() => {
+            setIsUserMenuOpen(false)
+            openProfileModal()
+          }}
+          className="w-full flex items-center gap-2.5 px-4 py-2 text-neutral-300 hover:text-white hover:bg-neutral-800/60 transition-colors text-left"
+        >
+          <UserIcon size={15} className="text-primary-400" />
+          <span>Edit Profile</span>
+        </button>
+
         <Link
           to="/bookmarks"
           className="flex items-center gap-2.5 px-4 py-2 text-neutral-300 hover:text-white hover:bg-neutral-800/60 transition-colors"
